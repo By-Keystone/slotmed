@@ -1,0 +1,88 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  name       String
+  last_name  String
+  phone      String    @unique
+  email      String    @unique
+  auth_id    String
+  active     Boolean   @default(true)
+  created_at DateTime  @default(now()) @db.Timestamptz()
+  updated_at DateTime? @db.Timestamptz()
+  deleted_at DateTime? @db.Timestamptz()
+
+  clinics             UserClinics[] @relation("UserClinicMember")
+  clinics_assignments UserClinics[] @relation("UserClinicAssignedBy")
+  doctor              Doctor?
+
+  @@map("user")
+}
+
+model Clinic {
+  id         Int           @id @default(autoincrement())
+  name       String
+  address    String
+  contacts   UserClinics[]
+  doctors    Doctor[]
+  active     Boolean       @default(true)
+  created_at DateTime      @default(now()) @db.Timestamptz()
+  updated_at DateTime?     @db.Timestamptz()
+  deleted_at DateTime?     @db.Timestamptz()
+
+  @@map("clinic")
+}
+
+model UserClinics {
+  user    User @relation("UserClinicMember", fields: [user_id], references: [id])
+  user_id Int
+
+  clinic    Clinic @relation(fields: [clinic_id], references: [id])
+  clinic_id Int
+
+  assigned_by    User @relation("UserClinicAssignedBy", fields: [assigned_by_id], references: [id])
+  assigned_by_id Int
+
+  assigned_at DateTime @default(now()) @db.Timestamptz()
+
+  @@id([user_id, clinic_id])
+  @@map("user_clinic")
+}
+
+model Doctor {
+  id         Int       @id @default(autoincrement())
+  specialty  String
+  active     Boolean   @default(true)
+  created_at DateTime  @default(now()) @db.Timestamptz()
+  updated_at DateTime? @db.Timestamptz()
+  deleted_at DateTime? @db.Timestamptz()
+
+  clinic    Clinic @relation(fields: [clinic_id], references: [id])
+  clinic_id Int
+
+  user    User @relation(fields: [user_id], references: [id])
+  user_id Int  @unique
+
+  schedules DoctorSchedule[]
+
+  @@map("doctor")
+}
+
+model DoctorSchedule {
+  id         Int      @id @default(autoincrement())
+  day        Int
+  start_time String
+  end_time   String
+
+  doctor    Doctor @relation(fields: [doctor_id], references: [id])
+  doctor_id Int
+
+  @@map("doctor_schedule")
+}

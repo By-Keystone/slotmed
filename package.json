@@ -1,0 +1,46 @@
+{
+  "name": "slotmed-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -- next dev",
+    "build": "dotenv -- next build",
+    "build:open-next": "open-next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:create-migrations": "dotenv -- prisma migrate dev --create-only",
+    "prisma:apply": "dotenv -- prisma migrate deploy",
+    "prisma:generate": "dotenv -- prisma generate",
+    "prisma:reset": "dotenv -- prisma reset dev",
+    "prisma": "dotenv -- prisma"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@supabase/ssr": "^0.9.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.462.0",
+    "next": "^15.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.4"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.100.0",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "dotenv": "^17.3.1",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^8",
+    "eslint-config-next": "^15.0.0",
+    "open-next": "^3.1.3",
+    "postcss": "^8",
+    "prisma": "^7.6.0",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
