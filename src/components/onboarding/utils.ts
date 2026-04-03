@@ -1,5 +1,5 @@
 import { OnboardingStep } from "@/lib/utils";
-import { Building2, UserRound } from "lucide-react";
+import { Building2, Stethoscope, UserRound } from "lucide-react";
 
 export const SLOT_OPTIONS = [
   { label: "15 minutos", value: 15 },
@@ -10,10 +10,7 @@ export const SLOT_OPTIONS = [
 ];
 
 export const STEPS = [
-  {
-    label: "Consultorio",
-    icon: Building2,
-    value: OnboardingStep.CreateClinic,
-  },
-  { label: "Doctor", icon: UserRound, value: OnboardingStep.CreateDoctor },
+  { label: "Rol", icon: Stethoscope, value: OnboardingStep.Registered },
+  { label: "Sede", icon: Building2, value: OnboardingStep.RoleSelected },
+  { label: "Doctor", icon: UserRound, value: OnboardingStep.SedeCreated },
 ];

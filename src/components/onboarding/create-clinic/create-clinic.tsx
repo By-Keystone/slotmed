@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ActionResult } from "@/lib/actions/clinic";
+import { ActionResult } from "@/lib/actions/sede";
 import { Building2, Loader2 } from "lucide-react";
 
 interface Props {
@@ -17,9 +17,7 @@ export const CreateClinic = ({ action, state, pending }: Props) => {
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600">
           <Building2 className="h-7 w-7 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Crea tu consultorio
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Crea tu sede</h1>
         <p className="mt-1 text-sm text-gray-500">
           Esta información aparecerá en tu página de reservas
         </p>
@@ -29,14 +27,14 @@ export const CreateClinic = ({ action, state, pending }: Props) => {
         <form action={action} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Nombre del consultorio <span className="text-red-500">*</span>
+              Nombre de la sede <span className="text-red-500">*</span>
             </label>
             <input
               id="name"
               name="name"
               type="text"
               required
-              placeholder="Consultorio Médico García"
+              placeholder="Sede Médica García"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </div>
@@ -88,7 +86,7 @@ export const CreateClinic = ({ action, state, pending }: Props) => {
             {pending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creando consultorio...
+                Creando sede...
               </>
             ) : (
               "Continuar"

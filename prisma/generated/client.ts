@@ -47,22 +47,32 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
- * Model Clinic
+ * Model Sede
  * 
  */
-export type Clinic = Prisma.ClinicModel
+export type Sede = Prisma.SedeModel
 /**
- * Model UserClinics
+ * Model UserSedes
  * 
  */
-export type UserClinics = Prisma.UserClinicsModel
+export type UserSedes = Prisma.UserSedesModel
 /**
  * Model Doctor
  * 
  */
 export type Doctor = Prisma.DoctorModel
 /**
+ * Model Appointment
+ * 
+ */
+export type Appointment = Prisma.AppointmentModel
+/**
  * Model DoctorSchedule
  * 
  */
 export type DoctorSchedule = Prisma.DoctorScheduleModel
+/**
+ * Model Patient
+ * 
+ */
+export type Patient = Prisma.PatientModel

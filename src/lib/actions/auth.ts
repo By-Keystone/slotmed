@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { OnboardingStatus, UserRole } from "../utils";
+import { OnboardingStep, UserRole } from "../utils";
 import type { UserCreateInput } from "../../../prisma/generated/models";
 import { createUser } from "../repository/user.repository";
 
@@ -42,7 +42,7 @@ export async function register(
         lastname: lastName,
         phone,
         onboarding_completed: false,
-        onboarding_step: OnboardingStatus.RegistrationCompleted,
+        onboarding_step: OnboardingStep.Registered,
         role: UserRole.ADMIN,
       },
     },

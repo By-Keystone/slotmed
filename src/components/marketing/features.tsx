@@ -19,9 +19,9 @@ const features = [
   {
     icon: Building2,
     color: "bg-indigo-100 text-indigo-600",
-    title: "Múltiples consultorios",
+    title: "Múltiples sedes",
     description:
-      "Gestiona todas tus sedes desde un solo panel. Cada consultorio tiene sus propios médicos, horarios y configuración.",
+      "Gestiona todas tus sedes desde un solo panel. Cada sede tiene sus propios médicos, horarios y configuración.",
   },
   {
     icon: Clock,
@@ -43,11 +43,11 @@ export function Features() {
             Funcionalidades
           </p>
           <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Todo lo que tu consultorio necesita
+            Todo lo que tu sede necesita
           </h2>
           <p className="mt-4 text-lg text-gray-500">
             Diseñado para simplificar la operación diaria de médicos independientes
-            y clínicas pequeñas y medianas.
+            y sedes pequeñas y medianas.
           </p>
         </div>
 

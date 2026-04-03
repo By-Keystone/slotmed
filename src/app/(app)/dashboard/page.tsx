@@ -1,21 +1,42 @@
 export const dynamic = "force-dynamic";
 
+import { getUser } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { getUserByAuthId } from "@/lib/actions/user";
+import { UserRole } from "@/lib/utils";
 import { DashboardStatistics } from "@/components/app/dashboard/stats";
-import { CalendarDays } from "lucide-react";
+import { UpcomingAppointments } from "@/components/app/dashboard/upcoming-appointments";
+import {
+  getMonthlyAppointmentCountBySedeUserId,
+  getMonthlyAppointmentCountByDoctorUserId,
+  getUpcomingAppointmentsBySedeUserId,
+  getUpcomingAppointmentsByDoctorUserId,
+} from "@/lib/repository/booking.repository";
 
 export default async function DashboardPage() {
+  const supabaseUser = await getUser();
+  if (!supabaseUser) redirect("/login");
+
+  const result = await getUserByAuthId(supabaseUser.id);
+  if (!result.ok) redirect("/login");
+
+  const { user } = result.data;
+  const role = supabaseUser.user_metadata.role as UserRole;
+  const isAdmin = role === UserRole.ADMIN;
+
+  const [appointmentCount, upcoming] = await Promise.all([
+    isAdmin
+      ? getMonthlyAppointmentCountBySedeUserId(user.id)
+      : getMonthlyAppointmentCountByDoctorUserId(user.id),
+    isAdmin
+      ? getUpcomingAppointmentsBySedeUserId(user.id)
+      : getUpcomingAppointmentsByDoctorUserId(user.id),
+  ]);
+
   return (
     <div>
-      <DashboardStatistics />
-      <div className="mt-8 rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Próximas citas</h2>
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <CalendarDays className="h-10 w-10 text-gray-300 mb-3" />
-          <p className="text-sm text-gray-400">
-            No hay citas programadas por ahora
-          </p>
-        </div>
-      </div>
+      <DashboardStatistics appointmentCount={appointmentCount} isAdmin={isAdmin} />
+      <UpcomingAppointments appointments={upcoming} isAdmin={isAdmin} />
     </div>
   );
 }

@@ -1,13 +1,16 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { createClinic } from "@/lib/actions/clinic";
-import { createDoctor } from "@/lib/actions/doctor";
+import { createSede } from "@/lib/actions/sede";
+import { createDoctor, createDoctorSelf } from "@/lib/actions/doctor";
+import { selectRole } from "@/lib/actions/onboarding";
 import { Check } from "lucide-react";
 import { OnboardingStep } from "@/lib/utils";
 import { CreateClinic } from "./create-clinic/create-clinic";
 import { STEPS } from "./utils";
 import { CreateDoctor } from "./create-doctor/create-doctor";
+import { CreateDoctorSelf } from "./create-doctor-self/create-doctor-self";
+import { SelectRole } from "./select-role/select-role";
 import { useAuth } from "@/context/auth/auth.context";
 import { useOnboardingContext } from "@/context/onboarding/onboarding.context";
 import { useRouter } from "next/navigation";
@@ -15,31 +18,45 @@ import { useRouter } from "next/navigation";
 export function OnboardingStepper() {
   const router = useRouter();
 
-  const { step, setClinicId, setStep, hasCompletedOnboarding } =
+  const { step, setSedeId, setStep, setIsDoctor, hasCompletedOnboarding, isDoctor } =
     useOnboardingContext();
   const { user } = useAuth();
 
-  const [clinicState, clinicAction, clinicPending] = useActionState(
-    createClinic.bind(null, user.id),
+  const [roleState, roleAction, rolePending] = useActionState(selectRole, null);
+  const [sedeState, sedeAction, sedePending] = useActionState(
+    createSede.bind(null, user.id),
     null,
   );
   const [doctorState, doctorAction, doctorPending] = useActionState(
     createDoctor,
     null,
   );
+  const [doctorSelfState, doctorSelfAction, doctorSelfPending] = useActionState(
+    createDoctorSelf,
+    null,
+  );
 
   useEffect(() => {
-    if (clinicState?.ok === true && !!clinicState.data.clinicId) {
-      setClinicId(clinicState.data.clinicId);
-      setStep(OnboardingStep.CreateDoctor);
+    if (roleState?.ok === true) {
+      setIsDoctor(roleState.data.isDoctor);
+      setStep(OnboardingStep.RoleSelected);
     }
-  }, [clinicState]);
+  }, [roleState]);
 
   useEffect(() => {
-    if (doctorState?.ok === true) {
-      setStep(OnboardingStep.Completed);
+    if (sedeState?.ok === true && !!sedeState.data.sedeId) {
+      setSedeId(sedeState.data.sedeId);
+      setStep(OnboardingStep.SedeCreated);
     }
+  }, [sedeState]);
+
+  useEffect(() => {
+    if (doctorState?.ok === true) setStep(OnboardingStep.Completed);
   }, [doctorState]);
+
+  useEffect(() => {
+    if (doctorSelfState?.ok === true) setStep(OnboardingStep.Completed);
+  }, [doctorSelfState]);
 
   useEffect(() => {
     if (hasCompletedOnboarding) router.replace("/dashboard");
@@ -91,17 +108,27 @@ export function OnboardingStepper() {
         })}
       </div>
 
-      {/* Paso 1 — Consultorio */}
-      {step === OnboardingStep.CreateClinic && (
+      {step === OnboardingStep.Registered && (
+        <SelectRole action={roleAction} pending={rolePending} state={roleState} />
+      )}
+
+      {step === OnboardingStep.RoleSelected && (
         <CreateClinic
-          action={clinicAction}
-          state={clinicState}
-          pending={clinicPending}
+          action={sedeAction}
+          state={sedeState}
+          pending={sedePending}
         />
       )}
 
-      {/* Paso 2 — Doctor */}
-      {step === OnboardingStep.CreateDoctor && (
+      {step === OnboardingStep.SedeCreated && isDoctor && (
+        <CreateDoctorSelf
+          action={doctorSelfAction}
+          state={doctorSelfState}
+          pending={doctorSelfPending}
+        />
+      )}
+
+      {step === OnboardingStep.SedeCreated && !isDoctor && (
         <CreateDoctor
           action={doctorAction}
           pending={doctorPending}

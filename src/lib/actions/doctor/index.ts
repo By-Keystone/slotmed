@@ -6,7 +6,7 @@ import {
   createClient,
   getUser,
 } from "@/lib/supabase/server";
-import { OnboardingStatus, UserRole } from "../../utils";
+import { OnboardingStep, UserRole } from "../../utils";
 import {
   DoctorCreateInput,
   UserCreateInput,
@@ -14,6 +14,7 @@ import {
 import {
   getDoctorByUserId,
   insertDoctor,
+  insertDoctorForExistingUser,
 } from "@/lib/repository/doctor.repository";
 import db from "@/lib/db";
 import { getUserByAuthId } from "../user";
@@ -50,9 +51,10 @@ export async function createDoctor(
     {
       redirectTo: `${process.env.SITE_URL}/set-password`,
       data: {
-        role: UserRole.DOCTOR,
+        role: UserRole.USER,
         onboarding_completed: true,
-        onboading_step: OnboardingStatus.NeedProfileSetup,
+        onboarding_step: OnboardingStep.Registered,
+        is_doctor: true,
       },
     },
   );
@@ -72,7 +74,7 @@ export async function createDoctor(
     phone: formData.get("phone") as string,
     auth_id: id,
     specialty: formData.get("specialty") as string,
-    clinic: { connect: { id: Number(formData.get("clinicId") as string) } },
+    sede: { connect: { id: Number(formData.get("sedeId") as string) } },
   };
 
   await insertDoctor(doctorEntity);
@@ -80,7 +82,7 @@ export async function createDoctor(
   const { error: updateUserError } = await supabase.auth.updateUser({
     data: {
       onboarding_completed: true,
-      onboarding_status: OnboardingStatus.DoctorCreated,
+      onboarding_step: OnboardingStep.Completed,
     },
   });
 
@@ -94,17 +96,97 @@ export async function createDoctor(
   } else redirect("/");
 }
 
+export async function createDoctorSelf(
+  _: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: getUserError,
+  } = await supabase.auth.getUser();
+  if (getUserError || !user) redirect("/login");
+
+  const specialty = formData.get("specialty") as string;
+  const sedeId = Number(formData.get("sedeId"));
+
+  if (!specialty) return { ok: false, error: "La especialidad es obligatoria" };
+
+  const dbUser = await findUserByAuthId({
+    where: { auth_id: user.id, active: true },
+  });
+
+  await insertDoctorForExistingUser({ userId: dbUser.id, specialty, sedeId });
+
+  await supabase.auth.updateUser({
+    data: {
+      onboarding_completed: true,
+      onboarding_step: OnboardingStep.Completed,
+    },
+  });
+
+  return { ok: true };
+}
+
 export async function skipCreateDoctor() {
   const supabase = await createClient();
 
   supabase.auth.updateUser({
     data: {
       onboarding_completed: true,
-      onboarding_step: OnboardingStatus.DoctorCreated,
+      onboarding_step: OnboardingStep.Completed,
     },
   });
 
   redirect("/");
+}
+
+export async function addDoctor(
+  _: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const supabaseAdmin = await createAdminClient();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: getUserError,
+  } = await supabase.auth.getUser();
+  if (getUserError || !user) redirect("/login");
+
+  const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+    formData.get("email") as string,
+    {
+      redirectTo: `${process.env.SITE_URL}/set-password`,
+      data: {
+        role: UserRole.USER,
+        onboarding_completed: true,
+        onboarding_step: OnboardingStep.Registered,
+        is_doctor: true,
+      },
+    },
+  );
+
+  if (error) {
+    console.log("Error al crear entidad auth del doctor: ", error);
+    return { ok: false, error: error.message };
+  }
+
+  const { id } = data.user;
+
+  const doctorEntity: Omit<DoctorCreateInput, "user"> & UserCreateInput = {
+    name: formData.get("name") as string,
+    last_name: formData.get("lastName") as string,
+    email: formData.get("email") as string,
+    phone: formData.get("phone") as string,
+    auth_id: id,
+    specialty: formData.get("specialty") as string,
+    sede: { connect: { id: Number(formData.get("sedeId") as string) } },
+  };
+
+  await insertDoctor(doctorEntity);
+
+  return { ok: true };
 }
 
 export async function getDoctorCount(): Promise<ActionResult> {
@@ -125,7 +207,7 @@ export async function getDoctorCount(): Promise<ActionResult> {
     const { user } = userByAuthIdResult.data;
 
     const count = await db.doctor.count({
-      where: { clinic: { contacts: { some: { user_id: user.id } } } },
+      where: { sede: { contacts: { some: { user_id: user.id } } } },
     });
 
     return { ok: true, data: { count } };

@@ -33,7 +33,7 @@ export function Footer() {
               <span className="text-lg font-bold text-gray-900">SlotMed</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-gray-500 max-w-xs">
-              Gestión de citas médicas para consultorios y clínicas que quieren
+              Gestión de citas médicas para sedes médicas que quieren
               operar sin fricciones.
             </p>
           </div>

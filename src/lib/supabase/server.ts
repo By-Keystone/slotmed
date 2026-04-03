@@ -1,4 +1,7 @@
-import { createServerClient } from "@supabase/ssr";
+import {
+  createServerClient,
+  createBrowserClient as browserClient,
+} from "@supabase/ssr";
 import { createClient as supabaseCreateClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { cache } from "react";
@@ -28,9 +31,17 @@ export async function createClient() {
   );
 }
 
+export function createBrowserClient() {
+  return browserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_PROJECT_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+}
 export const getUser = cache(async () => {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return user;
 });
 

@@ -5,20 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export enum OnboardingStatus {
-  RegistrationCompleted = "RegistrationCompleted",
-  ClinicCreated = "ClinicCreated",
-  DoctorCreated = "DoctorCreated",
-  NeedProfileSetup = "NeedProfileSetup",
-}
-
 export enum OnboardingStep {
-  CreateClinic = "CreateClinic",
-  CreateDoctor = "CreateDoctor",
+  Registered = "Registered",
+  RoleSelected = "RoleSelected",
+  SedeCreated = "SedeCreated",
   Completed = "Completed",
 }
 
 export enum UserRole {
-  DOCTOR = "DOCTOR",
+  USER = "USER",
   ADMIN = "ADMIN",
 }
+
+export enum DocumentType {
+  DNI = "DNI",
+}
+
+export const DOCUMENT_TYPES = Object.values(DocumentType);

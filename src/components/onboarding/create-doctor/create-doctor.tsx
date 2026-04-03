@@ -15,7 +15,7 @@ interface Props {
 }
 
 export const CreateDoctor = ({ action, state, pending }: Props) => {
-  const { clinicId } = useOnboardingContext();
+  const { sedeId } = useOnboardingContext();
 
   return (
     <div>
@@ -35,9 +35,9 @@ export const CreateDoctor = ({ action, state, pending }: Props) => {
         <form action={action} className="flex flex-col gap-4">
           <input
             type="hidden"
-            id="clinicId"
-            name="clinicId"
-            value={clinicId ?? ""}
+            id="sedeId"
+            name="sedeId"
+            value={sedeId ?? ""}
           />
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">

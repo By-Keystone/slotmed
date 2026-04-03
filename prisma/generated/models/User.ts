@@ -256,8 +256,8 @@ export type UserWhereInput = {
   created_at?: Prisma.DateTimeFilter<"User"> | Date | string
   updated_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   deleted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  clinics?: Prisma.UserClinicsListRelationFilter
-  clinics_assignments?: Prisma.UserClinicsListRelationFilter
+  sedes?: Prisma.UserSedesListRelationFilter
+  sedes_assignments?: Prisma.UserSedesListRelationFilter
   doctor?: Prisma.XOR<Prisma.DoctorNullableScalarRelationFilter, Prisma.DoctorWhereInput> | null
 }
 
@@ -272,8 +272,8 @@ export type UserOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrderInput | Prisma.SortOrder
   deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
-  clinics?: Prisma.UserClinicsOrderByRelationAggregateInput
-  clinics_assignments?: Prisma.UserClinicsOrderByRelationAggregateInput
+  sedes?: Prisma.UserSedesOrderByRelationAggregateInput
+  sedes_assignments?: Prisma.UserSedesOrderByRelationAggregateInput
   doctor?: Prisma.DoctorOrderByWithRelationInput
 }
 
@@ -291,8 +291,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"User"> | Date | string
   updated_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   deleted_at?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  clinics?: Prisma.UserClinicsListRelationFilter
-  clinics_assignments?: Prisma.UserClinicsListRelationFilter
+  sedes?: Prisma.UserSedesListRelationFilter
+  sedes_assignments?: Prisma.UserSedesListRelationFilter
   doctor?: Prisma.XOR<Prisma.DoctorNullableScalarRelationFilter, Prisma.DoctorWhereInput> | null
 }, "id" | "phone" | "email">
 
@@ -340,8 +340,8 @@ export type UserCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string | null
   deleted_at?: Date | string | null
-  clinics?: Prisma.UserClinicsCreateNestedManyWithoutUserInput
-  clinics_assignments?: Prisma.UserClinicsCreateNestedManyWithoutAssigned_byInput
+  sedes?: Prisma.UserSedesCreateNestedManyWithoutUserInput
+  sedes_assignments?: Prisma.UserSedesCreateNestedManyWithoutAssigned_byInput
   doctor?: Prisma.DoctorCreateNestedOneWithoutUserInput
 }
 
@@ -356,8 +356,8 @@ export type UserUncheckedCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string | null
   deleted_at?: Date | string | null
-  clinics?: Prisma.UserClinicsUncheckedCreateNestedManyWithoutUserInput
-  clinics_assignments?: Prisma.UserClinicsUncheckedCreateNestedManyWithoutAssigned_byInput
+  sedes?: Prisma.UserSedesUncheckedCreateNestedManyWithoutUserInput
+  sedes_assignments?: Prisma.UserSedesUncheckedCreateNestedManyWithoutAssigned_byInput
   doctor?: Prisma.DoctorUncheckedCreateNestedOneWithoutUserInput
 }
 
@@ -371,8 +371,8 @@ export type UserUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  clinics?: Prisma.UserClinicsUpdateManyWithoutUserNestedInput
-  clinics_assignments?: Prisma.UserClinicsUpdateManyWithoutAssigned_byNestedInput
+  sedes?: Prisma.UserSedesUpdateManyWithoutUserNestedInput
+  sedes_assignments?: Prisma.UserSedesUpdateManyWithoutAssigned_byNestedInput
   doctor?: Prisma.DoctorUpdateOneWithoutUserNestedInput
 }
 
@@ -387,8 +387,8 @@ export type UserUncheckedUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  clinics?: Prisma.UserClinicsUncheckedUpdateManyWithoutUserNestedInput
-  clinics_assignments?: Prisma.UserClinicsUncheckedUpdateManyWithoutAssigned_byNestedInput
+  sedes?: Prisma.UserSedesUncheckedUpdateManyWithoutUserNestedInput
+  sedes_assignments?: Prisma.UserSedesUncheckedUpdateManyWithoutAssigned_byNestedInput
   doctor?: Prisma.DoctorUncheckedUpdateOneWithoutUserNestedInput
 }
 
@@ -506,32 +506,32 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type UserCreateNestedOneWithoutClinicsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutClinicsInput, Prisma.UserUncheckedCreateWithoutClinicsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClinicsInput
+export type UserCreateNestedOneWithoutSedesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSedesInput, Prisma.UserUncheckedCreateWithoutSedesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSedesInput
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserCreateNestedOneWithoutClinics_assignmentsInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutClinics_assignmentsInput, Prisma.UserUncheckedCreateWithoutClinics_assignmentsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClinics_assignmentsInput
+export type UserCreateNestedOneWithoutSedes_assignmentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSedes_assignmentsInput, Prisma.UserUncheckedCreateWithoutSedes_assignmentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSedes_assignmentsInput
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateOneRequiredWithoutClinicsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutClinicsInput, Prisma.UserUncheckedCreateWithoutClinicsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClinicsInput
-  upsert?: Prisma.UserUpsertWithoutClinicsInput
+export type UserUpdateOneRequiredWithoutSedesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSedesInput, Prisma.UserUncheckedCreateWithoutSedesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSedesInput
+  upsert?: Prisma.UserUpsertWithoutSedesInput
   connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClinicsInput, Prisma.UserUpdateWithoutClinicsInput>, Prisma.UserUncheckedUpdateWithoutClinicsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSedesInput, Prisma.UserUpdateWithoutSedesInput>, Prisma.UserUncheckedUpdateWithoutSedesInput>
 }
 
-export type UserUpdateOneRequiredWithoutClinics_assignmentsNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutClinics_assignmentsInput, Prisma.UserUncheckedCreateWithoutClinics_assignmentsInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClinics_assignmentsInput
-  upsert?: Prisma.UserUpsertWithoutClinics_assignmentsInput
+export type UserUpdateOneRequiredWithoutSedes_assignmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSedes_assignmentsInput, Prisma.UserUncheckedCreateWithoutSedes_assignmentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSedes_assignmentsInput
+  upsert?: Prisma.UserUpsertWithoutSedes_assignmentsInput
   connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClinics_assignmentsInput, Prisma.UserUpdateWithoutClinics_assignmentsInput>, Prisma.UserUncheckedUpdateWithoutClinics_assignmentsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSedes_assignmentsInput, Prisma.UserUpdateWithoutSedes_assignmentsInput>, Prisma.UserUncheckedUpdateWithoutSedes_assignmentsInput>
 }
 
 export type UserCreateNestedOneWithoutDoctorInput = {
@@ -548,7 +548,7 @@ export type UserUpdateOneRequiredWithoutDoctorNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDoctorInput, Prisma.UserUpdateWithoutDoctorInput>, Prisma.UserUncheckedUpdateWithoutDoctorInput>
 }
 
-export type UserCreateWithoutClinicsInput = {
+export type UserCreateWithoutSedesInput = {
   name: string
   last_name: string
   phone: string
@@ -558,11 +558,11 @@ export type UserCreateWithoutClinicsInput = {
   created_at?: Date | string
   updated_at?: Date | string | null
   deleted_at?: Date | string | null
-  clinics_assignments?: Prisma.UserClinicsCreateNestedManyWithoutAssigned_byInput
+  sedes_assignments?: Prisma.UserSedesCreateNestedManyWithoutAssigned_byInput
   doctor?: Prisma.DoctorCreateNestedOneWithoutUserInput
 }
 
-export type UserUncheckedCreateWithoutClinicsInput = {
+export type UserUncheckedCreateWithoutSedesInput = {
   id?: number
   name: string
   last_name: string
@@ -573,16 +573,16 @@ export type UserUncheckedCreateWithoutClinicsInput = {
   created_at?: Date | string
   updated_at?: Date | string | null
   deleted_at?: Date | string | null
-  clinics_assignments?: Prisma.UserClinicsUncheckedCreateNestedManyWithoutAssigned_byInput
+  sedes_assignments?: Prisma.UserSedesUncheckedCreateNestedManyWithoutAssigned_byInput
   doctor?: Prisma.DoctorUncheckedCreateNestedOneWithoutUserInput
 }
 
-export type UserCreateOrConnectWithoutClinicsInput = {
+export type UserCreateOrConnectWithoutSedesInput = {
   where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutClinicsInput, Prisma.UserUncheckedCreateWithoutClinicsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSedesInput, Prisma.UserUncheckedCreateWithoutSedesInput>
 }
 
-export type UserCreateWithoutClinics_assignmentsInput = {
+export type UserCreateWithoutSedes_assignmentsInput = {
   name: string
   last_name: string
   phone: string
@@ -592,11 +592,11 @@ export type UserCreateWithoutClinics_assignmentsInput = {
   created_at?: Date | string
   updated_at?: Date | string | null
   deleted_at?: Date | string | null
-  clinics?: Prisma.UserClinicsCreateNestedManyWithoutUserInput
+  sedes?: Prisma.UserSedesCreateNestedManyWithoutUserInput
   doctor?: Prisma.DoctorCreateNestedOneWithoutUserInput
 }
 
-export type UserUncheckedCreateWithoutClinics_assignmentsInput = {
+export type UserUncheckedCreateWithoutSedes_assignmentsInput = {
   id?: number
   name: string
   last_name: string
@@ -607,27 +607,27 @@ export type UserUncheckedCreateWithoutClinics_assignmentsInput = {
   created_at?: Date | string
   updated_at?: Date | string | null
   deleted_at?: Date | string | null
-  clinics?: Prisma.UserClinicsUncheckedCreateNestedManyWithoutUserInput
+  sedes?: Prisma.UserSedesUncheckedCreateNestedManyWithoutUserInput
   doctor?: Prisma.DoctorUncheckedCreateNestedOneWithoutUserInput
 }
 
-export type UserCreateOrConnectWithoutClinics_assignmentsInput = {
+export type UserCreateOrConnectWithoutSedes_assignmentsInput = {
   where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutClinics_assignmentsInput, Prisma.UserUncheckedCreateWithoutClinics_assignmentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSedes_assignmentsInput, Prisma.UserUncheckedCreateWithoutSedes_assignmentsInput>
 }
 
-export type UserUpsertWithoutClinicsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutClinicsInput, Prisma.UserUncheckedUpdateWithoutClinicsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutClinicsInput, Prisma.UserUncheckedCreateWithoutClinicsInput>
+export type UserUpsertWithoutSedesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSedesInput, Prisma.UserUncheckedUpdateWithoutSedesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSedesInput, Prisma.UserUncheckedCreateWithoutSedesInput>
   where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateToOneWithWhereWithoutClinicsInput = {
+export type UserUpdateToOneWithWhereWithoutSedesInput = {
   where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutClinicsInput, Prisma.UserUncheckedUpdateWithoutClinicsInput>
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSedesInput, Prisma.UserUncheckedUpdateWithoutSedesInput>
 }
 
-export type UserUpdateWithoutClinicsInput = {
+export type UserUpdateWithoutSedesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
@@ -637,11 +637,11 @@ export type UserUpdateWithoutClinicsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  clinics_assignments?: Prisma.UserClinicsUpdateManyWithoutAssigned_byNestedInput
+  sedes_assignments?: Prisma.UserSedesUpdateManyWithoutAssigned_byNestedInput
   doctor?: Prisma.DoctorUpdateOneWithoutUserNestedInput
 }
 
-export type UserUncheckedUpdateWithoutClinicsInput = {
+export type UserUncheckedUpdateWithoutSedesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -652,22 +652,22 @@ export type UserUncheckedUpdateWithoutClinicsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  clinics_assignments?: Prisma.UserClinicsUncheckedUpdateManyWithoutAssigned_byNestedInput
+  sedes_assignments?: Prisma.UserSedesUncheckedUpdateManyWithoutAssigned_byNestedInput
   doctor?: Prisma.DoctorUncheckedUpdateOneWithoutUserNestedInput
 }
 
-export type UserUpsertWithoutClinics_assignmentsInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutClinics_assignmentsInput, Prisma.UserUncheckedUpdateWithoutClinics_assignmentsInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutClinics_assignmentsInput, Prisma.UserUncheckedCreateWithoutClinics_assignmentsInput>
+export type UserUpsertWithoutSedes_assignmentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSedes_assignmentsInput, Prisma.UserUncheckedUpdateWithoutSedes_assignmentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSedes_assignmentsInput, Prisma.UserUncheckedCreateWithoutSedes_assignmentsInput>
   where?: Prisma.UserWhereInput
 }
 
-export type UserUpdateToOneWithWhereWithoutClinics_assignmentsInput = {
+export type UserUpdateToOneWithWhereWithoutSedes_assignmentsInput = {
   where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutClinics_assignmentsInput, Prisma.UserUncheckedUpdateWithoutClinics_assignmentsInput>
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSedes_assignmentsInput, Prisma.UserUncheckedUpdateWithoutSedes_assignmentsInput>
 }
 
-export type UserUpdateWithoutClinics_assignmentsInput = {
+export type UserUpdateWithoutSedes_assignmentsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.StringFieldUpdateOperationsInput | string
@@ -677,11 +677,11 @@ export type UserUpdateWithoutClinics_assignmentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  clinics?: Prisma.UserClinicsUpdateManyWithoutUserNestedInput
+  sedes?: Prisma.UserSedesUpdateManyWithoutUserNestedInput
   doctor?: Prisma.DoctorUpdateOneWithoutUserNestedInput
 }
 
-export type UserUncheckedUpdateWithoutClinics_assignmentsInput = {
+export type UserUncheckedUpdateWithoutSedes_assignmentsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -692,7 +692,7 @@ export type UserUncheckedUpdateWithoutClinics_assignmentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  clinics?: Prisma.UserClinicsUncheckedUpdateManyWithoutUserNestedInput
+  sedes?: Prisma.UserSedesUncheckedUpdateManyWithoutUserNestedInput
   doctor?: Prisma.DoctorUncheckedUpdateOneWithoutUserNestedInput
 }
 
@@ -706,8 +706,8 @@ export type UserCreateWithoutDoctorInput = {
   created_at?: Date | string
   updated_at?: Date | string | null
   deleted_at?: Date | string | null
-  clinics?: Prisma.UserClinicsCreateNestedManyWithoutUserInput
-  clinics_assignments?: Prisma.UserClinicsCreateNestedManyWithoutAssigned_byInput
+  sedes?: Prisma.UserSedesCreateNestedManyWithoutUserInput
+  sedes_assignments?: Prisma.UserSedesCreateNestedManyWithoutAssigned_byInput
 }
 
 export type UserUncheckedCreateWithoutDoctorInput = {
@@ -721,8 +721,8 @@ export type UserUncheckedCreateWithoutDoctorInput = {
   created_at?: Date | string
   updated_at?: Date | string | null
   deleted_at?: Date | string | null
-  clinics?: Prisma.UserClinicsUncheckedCreateNestedManyWithoutUserInput
-  clinics_assignments?: Prisma.UserClinicsUncheckedCreateNestedManyWithoutAssigned_byInput
+  sedes?: Prisma.UserSedesUncheckedCreateNestedManyWithoutUserInput
+  sedes_assignments?: Prisma.UserSedesUncheckedCreateNestedManyWithoutAssigned_byInput
 }
 
 export type UserCreateOrConnectWithoutDoctorInput = {
@@ -751,8 +751,8 @@ export type UserUpdateWithoutDoctorInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  clinics?: Prisma.UserClinicsUpdateManyWithoutUserNestedInput
-  clinics_assignments?: Prisma.UserClinicsUpdateManyWithoutAssigned_byNestedInput
+  sedes?: Prisma.UserSedesUpdateManyWithoutUserNestedInput
+  sedes_assignments?: Prisma.UserSedesUpdateManyWithoutAssigned_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDoctorInput = {
@@ -766,8 +766,8 @@ export type UserUncheckedUpdateWithoutDoctorInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  clinics?: Prisma.UserClinicsUncheckedUpdateManyWithoutUserNestedInput
-  clinics_assignments?: Prisma.UserClinicsUncheckedUpdateManyWithoutAssigned_byNestedInput
+  sedes?: Prisma.UserSedesUncheckedUpdateManyWithoutUserNestedInput
+  sedes_assignments?: Prisma.UserSedesUncheckedUpdateManyWithoutAssigned_byNestedInput
 }
 
 
@@ -776,13 +776,13 @@ export type UserUncheckedUpdateWithoutDoctorInput = {
  */
 
 export type UserCountOutputType = {
-  clinics: number
-  clinics_assignments: number
+  sedes: number
+  sedes_assignments: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  clinics?: boolean | UserCountOutputTypeCountClinicsArgs
-  clinics_assignments?: boolean | UserCountOutputTypeCountClinics_assignmentsArgs
+  sedes?: boolean | UserCountOutputTypeCountSedesArgs
+  sedes_assignments?: boolean | UserCountOutputTypeCountSedes_assignmentsArgs
 }
 
 /**
@@ -798,15 +798,15 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountClinicsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.UserClinicsWhereInput
+export type UserCountOutputTypeCountSedesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserSedesWhereInput
 }
 
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountClinics_assignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.UserClinicsWhereInput
+export type UserCountOutputTypeCountSedes_assignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserSedesWhereInput
 }
 
 
@@ -821,8 +821,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   created_at?: boolean
   updated_at?: boolean
   deleted_at?: boolean
-  clinics?: boolean | Prisma.User$clinicsArgs<ExtArgs>
-  clinics_assignments?: boolean | Prisma.User$clinics_assignmentsArgs<ExtArgs>
+  sedes?: boolean | Prisma.User$sedesArgs<ExtArgs>
+  sedes_assignments?: boolean | Prisma.User$sedes_assignmentsArgs<ExtArgs>
   doctor?: boolean | Prisma.User$doctorArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -868,8 +868,8 @@ export type UserSelectScalar = {
 
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "last_name" | "phone" | "email" | "auth_id" | "active" | "created_at" | "updated_at" | "deleted_at", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  clinics?: boolean | Prisma.User$clinicsArgs<ExtArgs>
-  clinics_assignments?: boolean | Prisma.User$clinics_assignmentsArgs<ExtArgs>
+  sedes?: boolean | Prisma.User$sedesArgs<ExtArgs>
+  sedes_assignments?: boolean | Prisma.User$sedes_assignmentsArgs<ExtArgs>
   doctor?: boolean | Prisma.User$doctorArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -879,8 +879,8 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
-    clinics: Prisma.$UserClinicsPayload<ExtArgs>[]
-    clinics_assignments: Prisma.$UserClinicsPayload<ExtArgs>[]
+    sedes: Prisma.$UserSedesPayload<ExtArgs>[]
+    sedes_assignments: Prisma.$UserSedesPayload<ExtArgs>[]
     doctor: Prisma.$DoctorPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1288,8 +1288,8 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  clinics<T extends Prisma.User$clinicsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$clinicsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserClinicsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  clinics_assignments<T extends Prisma.User$clinics_assignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$clinics_assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserClinicsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sedes<T extends Prisma.User$sedesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sedesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserSedesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sedes_assignments<T extends Prisma.User$sedes_assignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sedes_assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserSedesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   doctor<T extends Prisma.User$doctorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$doctorArgs<ExtArgs>>): Prisma.Prisma__DoctorClient<runtime.Types.Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1723,51 +1723,51 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * User.clinics
+ * User.sedes
  */
-export type User$clinicsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$sedesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the UserClinics
+   * Select specific fields to fetch from the UserSedes
    */
-  select?: Prisma.UserClinicsSelect<ExtArgs> | null
+  select?: Prisma.UserSedesSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the UserClinics
+   * Omit specific fields from the UserSedes
    */
-  omit?: Prisma.UserClinicsOmit<ExtArgs> | null
+  omit?: Prisma.UserSedesOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.UserClinicsInclude<ExtArgs> | null
-  where?: Prisma.UserClinicsWhereInput
-  orderBy?: Prisma.UserClinicsOrderByWithRelationInput | Prisma.UserClinicsOrderByWithRelationInput[]
-  cursor?: Prisma.UserClinicsWhereUniqueInput
+  include?: Prisma.UserSedesInclude<ExtArgs> | null
+  where?: Prisma.UserSedesWhereInput
+  orderBy?: Prisma.UserSedesOrderByWithRelationInput | Prisma.UserSedesOrderByWithRelationInput[]
+  cursor?: Prisma.UserSedesWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.UserClinicsScalarFieldEnum | Prisma.UserClinicsScalarFieldEnum[]
+  distinct?: Prisma.UserSedesScalarFieldEnum | Prisma.UserSedesScalarFieldEnum[]
 }
 
 /**
- * User.clinics_assignments
+ * User.sedes_assignments
  */
-export type User$clinics_assignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$sedes_assignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the UserClinics
+   * Select specific fields to fetch from the UserSedes
    */
-  select?: Prisma.UserClinicsSelect<ExtArgs> | null
+  select?: Prisma.UserSedesSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the UserClinics
+   * Omit specific fields from the UserSedes
    */
-  omit?: Prisma.UserClinicsOmit<ExtArgs> | null
+  omit?: Prisma.UserSedesOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.UserClinicsInclude<ExtArgs> | null
-  where?: Prisma.UserClinicsWhereInput
-  orderBy?: Prisma.UserClinicsOrderByWithRelationInput | Prisma.UserClinicsOrderByWithRelationInput[]
-  cursor?: Prisma.UserClinicsWhereUniqueInput
+  include?: Prisma.UserSedesInclude<ExtArgs> | null
+  where?: Prisma.UserSedesWhereInput
+  orderBy?: Prisma.UserSedesOrderByWithRelationInput | Prisma.UserSedesOrderByWithRelationInput[]
+  cursor?: Prisma.UserSedesWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.UserClinicsScalarFieldEnum | Prisma.UserClinicsScalarFieldEnum[]
+  distinct?: Prisma.UserSedesScalarFieldEnum | Prisma.UserSedesScalarFieldEnum[]
 }
 
 /**

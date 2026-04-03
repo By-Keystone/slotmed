@@ -1,12 +1,13 @@
 "use server";
 
 import { createClient, getUser } from "@/lib/supabase/server";
-import { OnboardingStatus, UserRole } from "../utils";
+import { OnboardingStep, UserRole } from "../utils";
 import {
-  findClinicByUserId,
-  createClinic as repositoryCreateClinic,
-} from "../repository/clinic.repository";
-import { ClinicCreateInput } from "../../../prisma/generated/models";
+  findSedeByUserId,
+  createSede as repositoryCreateSede,
+  updateSede as repositoryUpdateSede,
+} from "../repository/sede.repository";
+import { SedeCreateInput } from "../../../prisma/generated/models";
 import { redirect } from "next/navigation";
 import { getUserByAuthId } from "./user";
 import db from "../db";
@@ -15,7 +16,7 @@ export type ActionResult =
   | { ok: true; data: { [key: string]: any } }
   | { ok: false; error: string };
 
-export async function createClinic(
+export async function createSede(
   userId: number,
   _: unknown,
   formData: FormData,
@@ -26,14 +27,13 @@ export async function createClinic(
     name: formData.get("name") as string,
     address: formData.get("address") as string,
     phone: formData.get("phone") as string,
-    createdBy: userId,
   };
 
   if (!body.name)
-    return { ok: false, error: "El nombre del consultorio es obligatorio" };
+    return { ok: false, error: "El nombre de la sede es obligatorio" };
 
   try {
-    const clinic: ClinicCreateInput = {
+    const sede: SedeCreateInput = {
       name: body.name,
       address: body.address,
       contacts: {
@@ -43,48 +43,64 @@ export async function createClinic(
         },
       },
     };
-    const clinicId = await repositoryCreateClinic({
-      data: clinic,
-    });
+    const sedeId = await repositoryCreateSede({ data: sede });
     await supabase.auth.updateUser({
       data: {
         onboarding_completed: false,
-        onboarding_step: OnboardingStatus.ClinicCreated,
+        onboarding_step: OnboardingStep.SedeCreated,
       },
     });
 
-    return { ok: true, data: { clinicId } };
+    return { ok: true, data: { sedeId } };
   } catch (error) {
     console.error("Ha ocurrido un error en el servidor: ", error);
     return { ok: false, error: "Ha ocurrido un error en el servidor" };
   }
 }
 
-export async function getClinicByUserId(userId: number): Promise<ActionResult> {
+export async function getSedeByUserId(userId: number): Promise<ActionResult> {
   try {
-    const clinic = await findClinicByUserId({
+    const sede = await findSedeByUserId({
       where: {
         contacts: { some: { user_id: userId, assigned_by_id: userId } },
       },
     });
 
-    if (!clinic) return { ok: true, data: {} };
+    if (!sede) return { ok: true, data: {} };
 
-    return { ok: true, data: { clinicId: clinic.id } };
+    return { ok: true, data: { sedeId: sede.id } };
   } catch (error) {
     console.log(error);
     return { ok: false, error: "Ha ocurrido un error en el servidor" };
   }
 }
 
-export async function getClinicCount(): Promise<ActionResult> {
+export async function updateSede(
+  sedeId: number,
+  _: unknown,
+  formData: FormData,
+): Promise<ActionResult> {
+  const name = formData.get("name") as string;
+  const address = formData.get("address") as string;
+
+  if (!name) return { ok: false, error: "El nombre de la sede es obligatorio" };
+
+  try {
+    await repositoryUpdateSede(sedeId, { name, address });
+    return { ok: true, data: {} };
+  } catch (error) {
+    return { ok: false, error: "Ha ocurrido un error al actualizar la sede" };
+  }
+}
+
+export async function getSedeCount(): Promise<ActionResult> {
   try {
     const supabaseUser = await getUser();
 
     if (!supabaseUser) redirect("/login");
 
     if (supabaseUser?.user_metadata?.role !== UserRole.ADMIN)
-      return { ok: false, error: "No tiene los permisos necesario" };
+      return { ok: false, error: "No tiene los permisos necesarios" };
 
     const userByAuthIdResult = await getUserByAuthId(supabaseUser.id);
 
@@ -95,7 +111,7 @@ export async function getClinicCount(): Promise<ActionResult> {
 
     const { user } = userByAuthIdResult.data;
 
-    const count = await db.clinic.count({
+    const count = await db.sede.count({
       where: { contacts: { some: { user_id: user.id } } },
     });
 
@@ -104,7 +120,7 @@ export async function getClinicCount(): Promise<ActionResult> {
     console.error(error);
     return {
       ok: false,
-      error: "Ha ocurrido un error al obtener el número de clínicas",
+      error: "Ha ocurrido un error al obtener el número de sedes",
     };
   }
 }

@@ -1,10 +1,9 @@
 "use client";
 
-import { OnboardingStatus, OnboardingStep } from "@/lib/utils";
+import { OnboardingStep } from "@/lib/utils";
 import {
   createContext,
   ReactNode,
-  useActionState,
   useContext,
   useEffect,
   useMemo,
@@ -12,75 +11,68 @@ import {
 } from "react";
 import { useAuth } from "../auth/auth.context";
 import { useRouter } from "next/navigation";
-import { getClinicByUserId } from "@/lib/actions/clinic";
+import { getSedeByUserId } from "@/lib/actions/sede";
 
 type OnboardingContextType = {
-  clinicId?: number;
+  sedeId?: number;
   step: OnboardingStep;
+  isDoctor: boolean;
   hasCompletedOnboarding: boolean;
   setStep: (step: OnboardingStep) => void;
-  setClinicId: (id: number) => void;
+  setSedeId: (id: number) => void;
+  setIsDoctor: (value: boolean) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | null>(null);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [clinicId, setClinicId] = useState<number>();
-  const [step, setStep] = useState<OnboardingStep>(OnboardingStep.CreateClinic);
+  const [sedeId, setSedeId] = useState<number>();
 
-  const { supabaseUser, user, updateSupabaseUserOnboardingStatus } = useAuth();
-  const onboardingStep = supabaseUser.user_metadata.onboarding_step;
+  const { supabaseUser, user, updateOnboardingStep } = useAuth();
+  const onboardingStep = supabaseUser.user_metadata
+    .onboarding_step as OnboardingStep;
+
+  const [step, setStep] = useState<OnboardingStep>(
+    onboardingStep ?? OnboardingStep.Registered,
+  );
+  const [isDoctor, setIsDoctor] = useState<boolean>(
+    (supabaseUser.user_metadata.is_doctor as boolean) ?? false,
+  );
 
   useEffect(() => {
-    if (onboardingStep == OnboardingStatus.ClinicCreated)
-      setStep(OnboardingStep.CreateDoctor);
+    if (onboardingStep) setStep(onboardingStep);
   }, [supabaseUser]);
 
   const hasCompletedOnboarding = useMemo(
     () =>
-      onboardingStep !== OnboardingStatus.ClinicCreated &&
-      onboardingStep !== OnboardingStatus.DoctorCreated &&
-      onboardingStep !== OnboardingStatus.RegistrationCompleted,
-    [supabaseUser],
-  );
-
-  const hasCompletedClinicCreation = useMemo(
-    () => onboardingStep === OnboardingStatus.ClinicCreated,
-    [supabaseUser],
-  );
-
-  const hasCompletedDoctorCreation = useMemo(
-    () => onboardingStep === OnboardingStatus.DoctorCreated,
-    [supabaseUser],
+      step === OnboardingStep.Completed ||
+      onboardingStep === OnboardingStep.Completed,
+    [step, supabaseUser],
   );
 
   useEffect(() => {
-    const getClinic = async () => {
-      if (hasCompletedClinicCreation && supabaseUser) {
-        const result = await getClinicByUserId(user.id);
-
+    const getSede = async () => {
+      if (onboardingStep === OnboardingStep.SedeCreated && supabaseUser) {
+        const result = await getSedeByUserId(user.id);
         if (!result.ok) console.error(result.error);
-
-        if (result.ok && !!result.data.clinicId)
-          setClinicId(result.data.clinicId);
+        if (result.ok && !!result.data.sedeId) setSedeId(result.data.sedeId);
       }
     };
-    getClinic();
-  }, [step, hasCompletedClinicCreation, supabaseUser]);
-
-  useEffect(() => {
-    if (hasCompletedClinicCreation)
-      updateSupabaseUserOnboardingStatus(OnboardingStatus.ClinicCreated);
-    else if (hasCompletedDoctorCreation) {
-      updateSupabaseUserOnboardingStatus(OnboardingStatus.DoctorCreated);
-      router.replace("/dashboard");
-    }
-  }, [hasCompletedClinicCreation]);
+    getSede();
+  }, [step, onboardingStep, supabaseUser]);
 
   return (
     <OnboardingContext.Provider
-      value={{ step, clinicId, setStep, setClinicId, hasCompletedOnboarding }}
+      value={{
+        step,
+        sedeId,
+        isDoctor,
+        setStep,
+        setSedeId,
+        setIsDoctor,
+        hasCompletedOnboarding,
+      }}
     >
       {children}
     </OnboardingContext.Provider>

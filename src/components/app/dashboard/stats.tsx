@@ -1,44 +1,47 @@
 import { Building2, CalendarDays, UserRound } from "lucide-react";
 import { StatCard } from "./statcard";
-import { UserRole } from "@/lib/utils";
 import { Welcome } from "./welcome";
-import db from "@/lib/db";
 import { getDoctorCount } from "@/lib/actions/doctor";
-import { requireRole } from "@/lib/helpers";
-import { getClinicCount } from "@/lib/actions/clinic";
+import { getSedeCount } from "@/lib/actions/sede";
+import { UserRole } from "@/lib/utils";
 
-export async function DashboardStatistics() {
-  const [doctorCount, clinicCount] = await Promise.all([
-    getDoctorCount(),
-    getClinicCount(),
+interface Props {
+  appointmentCount: number;
+  isAdmin: boolean;
+}
+
+export async function DashboardStatistics({
+  appointmentCount,
+  isAdmin,
+}: Props) {
+  const [doctorCount, sedeCount] = await Promise.all([
+    isAdmin ? getDoctorCount() : null,
+    isAdmin ? getSedeCount() : null,
   ]);
 
-  console.log({ doctorCount });
   return (
     <>
       <Welcome />
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={CalendarDays}
-          label="Citas hoy"
-          value={0}
+          label="Citas este mes"
+          value={appointmentCount}
           color="blue"
         />
-        {doctorCount.ok && (
+        {doctorCount?.ok && (
           <StatCard
             icon={UserRound}
             label="Doctores"
-            value={doctorCount?.data?.count}
+            value={doctorCount.data?.count}
             color="teal"
           />
         )}
-
-        {clinicCount.ok && (
+        {sedeCount?.ok && (
           <StatCard
             icon={Building2}
-            label="Consultorios"
-            value={clinicCount.data.count}
+            label="Sedes"
+            value={sedeCount.data.count}
             color="purple"
           />
         )}

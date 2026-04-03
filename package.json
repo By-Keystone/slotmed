@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "dotenv -- next dev",
+    "typecheck": "tsc --noEmit",
     "build": "dotenv -- next build",
     "build:open-next": "open-next build",
     "start": "next start",

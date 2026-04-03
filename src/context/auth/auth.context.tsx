@@ -11,13 +11,14 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { getUserByAuthId } from "@/lib/actions/user";
 import { SupabaseUser } from "./types";
-import { OnboardingStatus, UserRole } from "@/lib/utils";
+import { OnboardingStep, UserRole } from "@/lib/utils";
 import { User } from "../../../prisma/generated/client";
 
 type AuthContextType = {
   supabaseUser: SupabaseUser;
   user: User & { role: UserRole };
-  updateSupabaseUserOnboardingStatus: (status: OnboardingStatus) => void;
+  isDoctor: boolean;
+  updateOnboardingStep: (step: OnboardingStep) => void;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -33,6 +34,8 @@ export function AuthProvider({
     initialUser,
   );
   const [user, setUser] = useState<User & { role: UserRole }>();
+
+  const isDoctor = supabaseUser?.user_metadata.is_doctor ?? false;
 
   const router = useRouter();
 
@@ -71,9 +74,7 @@ export function AuthProvider({
 
   if (!supabaseUser || !user) return null;
 
-  const updateSupabaseUserOnboardingStatus = async (
-    status: OnboardingStatus,
-  ) => {
+  const updateOnboardingStep = async (step: OnboardingStep) => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_PROJECT_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -81,8 +82,8 @@ export function AuthProvider({
 
     supabase.auth.updateUser({
       data: {
-        onboarding_step: status,
-        ...(status === OnboardingStatus.DoctorCreated && {
+        onboarding_step: step,
+        ...(step === OnboardingStep.Completed && {
           onboarding_completed: true,
         }),
       },
@@ -90,7 +91,7 @@ export function AuthProvider({
   };
   return (
     <AuthContext.Provider
-      value={{ supabaseUser, user: user, updateSupabaseUserOnboardingStatus }}
+      value={{ supabaseUser, user, isDoctor, updateOnboardingStep }}
     >
       {children}
     </AuthContext.Provider>

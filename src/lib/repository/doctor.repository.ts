@@ -10,7 +10,7 @@ export async function insertDoctor(
   args: Omit<DoctorCreateInput, "user"> & UserCreateInput,
 ) {
   try {
-    const { specialty, clinic, ...rest } = args;
+    const { specialty, sede, ...rest } = args;
 
     await db.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -22,7 +22,7 @@ export async function insertDoctor(
         data: {
           specialty,
           user: { connect: { id: user.id } },
-          clinic,
+          sede,
         },
       });
     });
@@ -30,6 +30,39 @@ export async function insertDoctor(
     console.error(error);
     throw error;
   }
+}
+
+export async function insertDoctorForExistingUser({
+  userId,
+  specialty,
+  sedeId,
+}: {
+  userId: number;
+  specialty: string;
+  sedeId: number;
+}) {
+  await db.doctor.create({
+    data: {
+      specialty,
+      user: { connect: { id: userId } },
+      sede: { connect: { id: sedeId } },
+    },
+  });
+}
+
+export async function getDoctorsBySedeUserId(userId: number) {
+  return db.doctor.findMany({
+    where: {
+      active: true,
+      sede: { contacts: { some: { user_id: userId } } },
+    },
+    include: {
+      user: {
+        select: { name: true, last_name: true, email: true, phone: true },
+      },
+    },
+    orderBy: { created_at: "asc" },
+  });
 }
 
 export async function getDoctorByUserId(

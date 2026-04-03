@@ -7,10 +7,10 @@ export function CTA() {
     <section className="bg-gradient-to-br from-blue-600 to-teal-500 py-24">
       <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
         <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          Tu consultorio merece una agenda que trabaje por ti
+          Tu sede merece una agenda que trabaje por ti
         </h2>
         <p className="mt-4 text-lg text-blue-100">
-          Únete a los consultorios que ya reducen cancelaciones y mejoran la
+          Únete a las sedes que ya reducen cancelaciones y mejoran la
           experiencia de sus pacientes con SlotMed.
         </p>
 
