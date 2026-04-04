@@ -23,8 +23,8 @@ export function BetaCTA() {
           Únete gratis durante la beta
         </h2>
         <p className="mt-4 text-lg text-blue-100">
-          Estamos en beta abierta: regístrate hoy y obtén acceso completo a
-          SlotMed sin costo. Sin tarjeta. Sin compromisos.
+          Estamos en beta abierta: regístrate hoy y obtén acceso a SlotMed sin
+          costo. Sin tarjeta. Sin compromisos.
         </p>
 
         <ul className="mx-auto mt-8 inline-flex flex-col gap-3 text-left">
@@ -57,7 +57,7 @@ export function BetaCTA() {
         </div>
 
         <p className="mt-5 text-sm text-blue-200">
-          Acceso completo · Sin tarjeta de crédito · Cancela cuando quieras
+          Sin tarjeta de crédito · Cancela cuando quieras
         </p>
       </div>
     </section>

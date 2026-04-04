@@ -3,17 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "dotenv -- next dev",
-    "typecheck": "tsc --noEmit",
     "build": "dotenv -- next build",
     "build:open-next": "open-next build",
-    "start": "next start",
+    "dev": "dotenv -- next dev",
     "lint": "next lint",
-    "prisma:create-migrations": "dotenv -- prisma migrate dev --create-only",
+    "prisma": "dotenv -- prisma",
     "prisma:apply": "dotenv -- prisma migrate deploy",
+    "prisma:create-migrations": "dotenv -- prisma migrate dev --create-only",
     "prisma:generate": "dotenv -- prisma generate",
     "prisma:reset": "dotenv -- prisma reset dev",
-    "prisma": "dotenv -- prisma"
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "sst:deploy": "dotenv -- sst deploy"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
@@ -26,6 +27,7 @@
     "next": "^15.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sst": "4.6.11",
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
