@@ -1,12 +1,12 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
-import { jwtVerify } from "jose";
+import { JWTPayload, jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "dev-secret-change-in-production",
 );
 
-export interface AuthUser {
+export interface UserClaims extends JWTPayload {
   userId: string;
   email: string;
   role: string;
@@ -15,7 +15,7 @@ export interface AuthUser {
 
 declare module "fastify" {
   interface FastifyRequest {
-    user: AuthUser;
+    user: UserClaims;
   }
 }
 
@@ -29,8 +29,8 @@ async function authPlugin(fastify: FastifyInstance) {
     const token = authHeader.split("Bearer")[1].trim();
 
     try {
-      const { payload } = await jwtVerify(token, JWT_SECRET);
-      request.user = payload as unknown as AuthUser;
+      const { payload } = await jwtVerify<UserClaims>(token, JWT_SECRET);
+      request.user = payload;
     } catch {
       throw fastify.httpErrors.unauthorized("Invalid or expired token");
     }

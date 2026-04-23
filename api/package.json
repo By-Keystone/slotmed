@@ -8,18 +8,22 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate": "prisma migrate dev --create-only",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:push": "prisma db push",
+    "prisma:reset": "prisma migrate reset",
     "docker:build": "docker build -t wizydoc-api .",
-    "docker:run": "docker run -p 4000:4000 --env-file .env wizydoc-api"
+    "docker:run": "docker run --name wizydoc-api -p 4000:4000 -d --env-file .env wizydoc-api"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",
     "@fastify/cors": "^11.0.0",
     "@fastify/sensible": "^6.0.0",
     "@fastify/type-provider-zod": "^1.0.0",
+    "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "bcrypt": "^6.0.0",
+    "dotenv": "^16.4.0",
     "fastify": "^5.3.3",
     "fastify-plugin": "^5.0.0",
     "jose": "^6.2.2",
@@ -27,7 +31,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/node": "^20",
+    "@types/node": "^20.19.39",
     "prisma": "^7.6.0",
     "tsx": "^4.19.0",
     "typescript": "^5"
