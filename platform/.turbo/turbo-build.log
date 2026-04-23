@@ -1,0 +1,46 @@
+
+
+> @wizydoc/platform@0.1.0 build /Users/sergio.ramirez/Projects/clinica-citas/apps/platform
+> NODE_ENV=production next build
+
+   [1m[38;2;173;127;168m▲ Next.js 15.3.4[39m[22m
+   - Experiments (use with caution):
+     [1m✓[22m externalDir
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+ [32m[1m✓[22m[39m Compiled successfully in 1000ms
+[?25l [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G[?25h [37m[1m [22m[39m Linting and checking validity of types     [32m[1m✓[22m[39m Linting and checking validity of types 
+[?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m..[39m[2K[1G[?25h [37m[1m [22m[39m Collecting page data     [32m[1m✓[22m[39m Collecting page data 
+[?25l [37m[1m [22m[39m Generating static pages (0/15)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages (0/15)  [36m[=   ][39m[2K[1G[?25h [32m[1m✓[22m[39m Generating static pages (15/15)
+[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[?25l [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G[?25h [37m[1m [22m[39m Collecting build traces     [32m[1m✓[22m[39m Collecting build traces 
+[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization     [32m[1m✓[22m[39m Finalizing page optimization 
+
+[4mRoute (app)[24m                                     [4mSize[24m  [4mFirst Load JS[24m  [4m[24m  [4m[24m
+┌ ○ /                                          175 B         [37m[1m105 kB[22m[39m
+├ ○ /_not-found                                145 B         [37m[1m102 kB[22m[39m
+├ ƒ /appointments                              623 B         [37m[1m105 kB[22m[39m
+├ ƒ /auth/callback                             145 B         [37m[1m102 kB[22m[39m
+├ ○ /beta                                      175 B         [37m[1m105 kB[22m[39m
+├ ƒ /clinics                                 3.02 kB         [37m[1m111 kB[22m[39m
+├ ƒ /confirm                                   145 B         [37m[1m102 kB[22m[39m
+├ ƒ /dashboard                               1.42 kB         [37m[1m169 kB[22m[39m
+├ ƒ /doctor/[doctorId]/schedule-appointment  5.64 kB         [37m[1m114 kB[22m[39m
+├ ƒ /doctors                                 4.09 kB         [37m[1m112 kB[22m[39m
+├ ○ /login                                   3.43 kB         [37m[1m115 kB[22m[39m
+├ ƒ /onboarding                              6.36 kB         [37m[1m174 kB[22m[39m
+├ ƒ /profile                                 3.79 kB         [37m[1m112 kB[22m[39m
+├ ○ /register                                3.52 kB         [37m[1m115 kB[22m[39m
+├ ○ /set-password                            3.46 kB         [37m[1m171 kB[22m[39m
+└ ○ /verify-email                              176 B         [37m[1m105 kB[22m[39m
++ First Load JS shared by all                 [37m[1m101 kB[22m[39m
+  ├ chunks/986-3c043be0d1529dbb.js           46.3 kB
+  ├ chunks/fa2917ed-e01ead363afcceb7.js      53.2 kB
+  └ other shared chunks (total)              1.92 kB
+
+
+ƒ Middleware                                 [37m[1m33.3 kB[22m[39m
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+[?25h

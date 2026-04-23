@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String
+  lastName            String    @map("last_name")
+  phone               String
+  passwordHash        String    @map("password_hash")
+  role                UserRole  @default(ADMIN)
+  confirmed           Boolean   @default(false)
+  onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  refreshTokens RefreshToken[]
+  clinics       ClinicUser[]
+  doctor        Doctor?
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("refresh_tokens")
+}
+
+model Clinic {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  phone     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users   ClinicUser[]
+  doctors Doctor[]
+
+  @@map("clinics")
+}
+
+model ClinicUser {
+  userId   String   @map("user_id")
+  clinicId String   @map("clinic_id")
+  role     UserRole
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clinic   Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@id([userId, clinicId])
+  @@map("clinic_users")
+}
+
+model Doctor {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  clinicId  String   @map("clinic_id")
+  specialty String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  appointments Appointment[]
+  schedules    DoctorSchedule[]
+
+  @@map("doctors")
+}
+
+model DoctorSchedule {
+  id        String @id @default(cuid())
+  doctorId  String @map("doctor_id")
+  dayOfWeek Int    @map("day_of_week") // 0=Sunday, 6=Saturday
+  startTime String @map("start_time") // "09:00"
+  endTime   String @map("end_time") // "17:00"
+  doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@map("doctor_schedules")
+}
+
+model Appointment {
+  id           String            @id @default(cuid())
+  doctorId     String            @map("doctor_id")
+  patientName  String            @map("patient_name")
+  patientPhone String            @map("patient_phone")
+  scheduledAt  DateTime          @map("scheduled_at")
+  status       AppointmentStatus @default(PENDING)
+  doctor       Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@map("appointments")
+}
+
+enum UserRole {
+  ADMIN
+  DOCTOR
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
