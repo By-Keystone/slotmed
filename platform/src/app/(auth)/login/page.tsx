@@ -5,19 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { login } from "@/lib/actions/auth";
+import { loginAction, LoginState } from "./actions";
+
+const initialState: LoginState = { status: "idle" };
 
 export default function LoginPage() {
-  const [state, action, isPending] = useActionState(login, null);
+  const [state, login, isPending] = useActionState(loginAction, initialState);
   const router = useRouter();
-
-  useEffect(() => {
-    if (state && "redirectTo" in state) {
-      router.push(state.redirectTo ?? "/");
-    }
-  }, [state, router]);
-
-  const error = state && "error" in state ? state.error : null;
 
   return (
     <div className="w-full max-w-md">
@@ -31,7 +25,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form action={action} className="flex flex-col gap-4">
+        <form action={login} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="email"
@@ -48,6 +42,11 @@ export default function LoginPage() {
               placeholder="ana@consultorio.com"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+            {state.status === "error" && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                {state.fieldErrors?.email[0]}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -66,11 +65,16 @@ export default function LoginPage() {
               placeholder="Tu contraseña"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+            {state.status === "error" && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                {state.fieldErrors?.password[0]}
+              </p>
+            )}
           </div>
 
-          {error && (
+          {state.status === "error" && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-              {error}
+              {state.message}
             </p>
           )}
 

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { addDoctor } from "@/lib/actions/doctor";
+import { useDialogActions } from "@/hooks/useDialogActions";
 
 interface Props {
   sedeId: number;
@@ -13,24 +13,8 @@ interface Props {
 }
 
 export function CreateDoctorDialog({ sedeId, onClose }: Props) {
-  const router = useRouter();
-  const [state, action, pending] = useActionState(addDoctor, null);
+  useDialogActions({ onClose });
   const dialogRef = useRef<HTMLDivElement>(null);
-
-  // useEffect(() => {
-  //   if (state?.ok === true) {
-  //     router.refresh();
-  //     onClose();
-  //   }
-  // }, [state]);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -49,7 +33,7 @@ export function CreateDoctorDialog({ sedeId, onClose }: Props) {
           </button>
         </div>
 
-        <form action={action} className="flex flex-col gap-4">
+        {/* <form action={action} className="flex flex-col gap-4">
           <input type="hidden" name="sedeId" value={sedeId} />
 
           <div className="grid grid-cols-2 gap-3">
@@ -163,7 +147,7 @@ export function CreateDoctorDialog({ sedeId, onClose }: Props) {
               )}
             </Button>
           </div>
-        </form>
+        </form> */}
       </div>
     </div>
   );

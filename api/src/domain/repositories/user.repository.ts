@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { User } from "@/domain/entities/user/entity";
 
 export interface CreateUserData {
   email: string;

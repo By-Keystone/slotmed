@@ -1,62 +1,106 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { decodeJwt } from "jose";
-import { COOKIE_NAMES } from "@/lib/cognito/cookies";
+import { NextRequest, NextResponse } from "next/server";
+import { COOKIE_NAMES } from "./lib/auth/cookies";
+import { verifyToken } from "./lib/auth/guards";
+import { refreshTokens } from "./lib/auth/refresh";
 
-function isTokenExpired(token: string): boolean {
-  try {
-    const payload = decodeJwt(token);
-    return !!payload.exp && payload.exp * 1000 < Date.now();
-  } catch {
-    return true;
+const FIFTEEN_MINUTES = 60 * 15;
+const SEVEN_DAYS = 60 * 60 * 24 * 7;
+
+const BASE = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+};
+
+function toLogin(req: NextRequest, opts: { clearCookies: boolean }) {
+  const loginUrl = new URL("/login", req.url);
+
+  loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+
+  const res = NextResponse.redirect(loginUrl);
+
+  if (opts?.clearCookies) {
+    res.cookies.delete(COOKIE_NAMES.accessToken);
+    res.cookies.delete(COOKIE_NAMES.refreshToken);
   }
+
+  return res;
 }
 
-function clearCookies(response: NextResponse) {
-  response.cookies.delete(COOKIE_NAMES.accessToken);
-  response.cookies.delete(COOKIE_NAMES.idToken);
-  response.cookies.delete(COOKIE_NAMES.refreshToken);
-}
+const PUBLIC_PATHS = ["/", "/register", "/beta", "/confirm-email"];
 
-export function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-  if (process.env.BETA_ENDED !== "true" && pathname === "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/beta";
+  if (PUBLIC_PATHS.includes(pathname)) {
+    if (process.env.BETA_ENDED === "false" && pathname == "/")
+      return NextResponse.redirect(new URL("/beta", request.nextUrl));
+    return NextResponse.next();
+  }
+
+  let accessToken = request.cookies.get(COOKIE_NAMES.accessToken)?.value;
+  let refreshToken = request.cookies.get(COOKIE_NAMES.refreshToken)?.value;
+  const sessionToken = request.cookies.get(COOKIE_NAMES.sessionToken)?.value;
+
+  if (sessionToken && !accessToken) {
+    if (pathname === "/onboarding") return NextResponse.next();
+    return NextResponse.redirect(new URL("/onboarding", request.url));
+  }
+
+  let payload = accessToken ? await verifyToken(accessToken) : null;
+
+  if (pathname === "/login") {
+    if (!payload?.accountId) return NextResponse.next();
+
+    const resourceId = request.cookies.get(COOKIE_NAMES.resourceId)?.value;
+    const resourceType = request.cookies.get(COOKIE_NAMES.resourceType)?.value;
+    const base = `/account/${payload.accountId}`;
+    const url =
+      !resourceId || !resourceType
+        ? new URL(`${base}/select`, request.url)
+        : new URL(
+            `${base}/${resourceType.toLowerCase()}/${resourceId}`,
+            request.url,
+          );
     return NextResponse.redirect(url);
   }
 
-  const isAuthRoute =
-    pathname.startsWith("/login") || pathname.startsWith("/register");
-  const isProtected =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/appointments") ||
-    pathname.startsWith("/doctors") ||
-    pathname.startsWith("/clinics") ||
-    pathname.startsWith("/profile");
+  if (!refreshToken) return toLogin(request, { clearCookies: true });
 
-  const accessToken = request.cookies.get(COOKIE_NAMES.accessToken)?.value;
-  const hasValidSession = accessToken && !isTokenExpired(accessToken);
+  let refreshed: { accessToken: string; refreshToken: string } | null = null;
 
-  if (!hasValidSession && isProtected) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    const response = NextResponse.redirect(url);
-    clearCookies(response);
-    return response;
+  if (!payload) {
+    try {
+      const tokens = await refreshTokens(refreshToken);
+      if (!tokens) return toLogin(request, { clearCookies: true });
+
+      payload = await verifyToken(tokens.accessToken);
+      if (!payload) throw new Error("Token inválido");
+
+      refreshed = tokens;
+    } catch (error) {
+      console.error("Error occurred:", error);
+      return toLogin(request, { clearCookies: true });
+    }
   }
 
-  if (hasValidSession && isAuthRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
+  const applyRefreshed = (res: NextResponse) => {
+    if (!refreshed) return res;
+    res.cookies.set(COOKIE_NAMES.accessToken, refreshed.accessToken, {
+      ...BASE,
+      maxAge: FIFTEEN_MINUTES,
+    });
+    res.cookies.set(COOKIE_NAMES.refreshToken, refreshed.refreshToken, {
+      ...BASE,
+      maxAge: SEVEN_DAYS,
+    });
+    return res;
+  };
 
-  return NextResponse.next({ request });
+  return applyRefreshed(NextResponse.next());
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

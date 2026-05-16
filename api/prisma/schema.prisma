@@ -7,105 +7,166 @@ datasource db {
 }
 
 model User {
-  id                  String    @id @default(cuid())
-  email               String    @unique
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email               String   @unique
   name                String
-  lastName            String    @map("last_name")
+  lastName            String   @map("last_name")
   phone               String
-  passwordHash        String    @map("password_hash")
-  role                UserRole  @default(ADMIN)
-  confirmed           Boolean   @default(false)
-  onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt @map("updated_at")
+  passwordHash        String   @map("password_hash")
+  role                UserRole @default(USER)
+  confirmed           Boolean  @default(false)
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  accountId           String?  @map("account_id") @db.Uuid
 
-  refreshTokens RefreshToken[]
-  clinics       ClinicUser[]
-  doctor        Doctor?
+  refreshTokens       RefreshToken[]
+  doctor              Doctor?
+  resourcesCreated    Resource[]
+  resourceMemberships UserResourceMembership[] @relation(name: "user_membership")
+  membershipsCreated  UserResourceMembership[] @relation(name: "memberships_created")
 
-  @@map("users")
+  @@map("user")
+}
+
+model Resource {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type      ResourceType
+  createdBy String       @map("created_by") @db.Uuid
+  accountId String       @map("account_id") @db.Uuid
+
+  organization        Organization?
+  clinic              Clinic?
+  resourceMemberships UserResourceMembership[]
+  createdByUser       User                     @relation(fields: [createdBy], references: [id])
+  account             Account                  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("resource")
+}
+
+model Organization {
+  resourceId String   @id @map("resource_id") @db.Uuid
+  name       String   @unique
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  resource  Resource @relation(fields: [resourceId], references: [id])
+  clinics   Clinic[]
+  accountId String?  @db.Uuid
+
+  @@map("organization")
+}
+
+model Clinic {
+  resourceId     String   @id @map("resource_id") @db.Uuid
+  name           String
+  address        String
+  phone          String
+  organizationId String   @map("organization_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [resourceId])
+  resource     Resource     @relation(fields: [resourceId], references: [id])
+
+  @@map("clinic")
+}
+
+model UserResourceMembership {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  resourceId String   @map("resource_id") @db.Uuid
+  accountId  String   @map("account_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  createdBy  String   @map("created_by") @db.Uuid
+  role       UserRole @default(ADMIN)
+
+  account       Account  @relation(fields: [accountId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], name: "user_membership")
+  resource      Resource @relation(fields: [resourceId], references: [id])
+  createdByUser User     @relation(fields: [createdBy], references: [id], name: "memberships_created")
+
+  @@unique([userId, resourceId])
+  @@map("user_resource_membership")
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   token     String   @unique
-  userId    String   @map("user_id")
+  userId    String   @map("user_id") @db.Uuid
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
 
-  @@map("refresh_tokens")
-}
-
-model Clinic {
-  id        String   @id @default(cuid())
-  name      String
-  address   String?
-  phone     String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  users   ClinicUser[]
-  doctors Doctor[]
-
-  @@map("clinics")
-}
-
-model ClinicUser {
-  userId   String   @map("user_id")
-  clinicId String   @map("clinic_id")
-  role     UserRole
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clinic   Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-
-  @@id([userId, clinicId])
-  @@map("clinic_users")
+  @@map("refresh_token")
 }
 
 model Doctor {
-  id        String   @id @default(cuid())
-  userId    String   @unique @map("user_id")
-  clinicId  String   @map("clinic_id")
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
   specialty String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  appointments Appointment[]
-  schedules    DoctorSchedule[]
+  // appointments Appointment[]
+  // schedules    DoctorSchedule[]
 
-  @@map("doctors")
+  @@map("doctor")
 }
 
-model DoctorSchedule {
-  id        String @id @default(cuid())
-  doctorId  String @map("doctor_id")
-  dayOfWeek Int    @map("day_of_week") // 0=Sunday, 6=Saturday
-  startTime String @map("start_time") // "09:00"
-  endTime   String @map("end_time") // "17:00"
-  doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+model Subscription {
+  id        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountId String             @unique @map("account_id") @db.Uuid
+  status    SubscriptionStatus
+  plan      Plan
 
-  @@map("doctor_schedules")
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("subscription")
 }
 
-model Appointment {
-  id           String            @id @default(cuid())
-  doctorId     String            @map("doctor_id")
-  patientName  String            @map("patient_name")
-  patientPhone String            @map("patient_phone")
-  scheduledAt  DateTime          @map("scheduled_at")
-  status       AppointmentStatus @default(PENDING)
-  doctor       Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  createdAt    DateTime          @default(now()) @map("created_at")
-  updatedAt    DateTime          @updatedAt @map("updated_at")
+model Account {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  ownerId   String   @map("owner_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
 
-  @@map("appointments")
+  subscription            Subscription?
+  userResourceMemberships UserResourceMembership[]
+  resources               Resource[]
+
+  @@map("account")
 }
+
+// model DoctorSchedule {
+//   id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   doctorId  String @map("doctor_id") @db.Uuid
+//   dayOfWeek Int    @map("day_of_week") // 0=Sunday, 6=Saturday
+//   startTime String @map("start_time") // "09:00"
+//   endTime   String @map("end_time") // "17:00"
+//   doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+//   @@map("doctor_schedule")
+// }
+
+// model Appointment {
+//   id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+//   doctorId     String            @map("doctor_id") @db.Uuid
+//   patientName  String            @map("patient_name")
+//   patientPhone String            @map("patient_phone")
+//   scheduledAt  DateTime          @map("scheduled_at")
+//   status       AppointmentStatus @default(PENDING)
+//   doctor       Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+//   createdAt    DateTime          @default(now()) @map("created_at")
+//   updatedAt    DateTime          @updatedAt @map("updated_at")
+
+//   @@map("appointment")
+// }
 
 enum UserRole {
   ADMIN
-  DOCTOR
+  USER
 }
 
 enum AppointmentStatus {
@@ -113,4 +174,18 @@ enum AppointmentStatus {
   CONFIRMED
   CANCELLED
   COMPLETED
+}
+
+enum ResourceType {
+  ORGANIZATION
+  CLINIC
+}
+
+enum SubscriptionStatus {
+  CANCELLED
+  ACTIVE
+}
+
+enum Plan {
+  BASIC
 }
