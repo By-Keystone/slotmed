@@ -22,16 +22,15 @@ export class GetUserMembership implements IGetUserMembership {
     resourceId,
     userId,
   }: GetUserMembershipDto): Promise<UserMembership | undefined> {
+    const resourceInclude = {
+      organization: true,
+      clinic: true,
+      parent: { include: { organization: true } },
+    } as const;
+
     const direct = await getClient().userResourceMembership.findUnique({
       where: { userId_resourceId: { userId, resourceId } },
-      include: {
-        resource: {
-          include: {
-            organization: true,
-            clinic: { include: { organization: true } },
-          },
-        },
-      },
+      include: { resource: { include: resourceInclude } },
     });
 
     if (direct?.resource.type === "ORGANIZATION") {
@@ -45,19 +44,23 @@ export class GetUserMembership implements IGetUserMembership {
       };
     }
 
-    let clinic = direct?.resource.clinic ?? null;
-    if (!clinic) {
-      clinic = await getClient().clinic.findUnique({
-        where: { resourceId },
-        include: { organization: true },
-      });
-    }
+    // The resource is a clinic: its parent resource is the organization.
+    const resource =
+      direct?.resource ??
+      (await getClient().resource.findUnique({
+        where: { id: resourceId },
+        include: resourceInclude,
+      }));
 
-    if (!clinic) return;
+    const clinic = resource?.clinic ?? null;
+    const parentOrg = resource?.parent?.organization ?? null;
+    const organizationId = resource?.parentResourceId ?? null;
+
+    if (!clinic || !parentOrg || !organizationId) return;
 
     const inherited = await getClient().userResourceMembership.findUnique({
       where: {
-        userId_resourceId: { userId, resourceId: clinic.organizationId },
+        userId_resourceId: { userId, resourceId: organizationId },
       },
     });
 
@@ -95,8 +98,8 @@ export class GetUserMembership implements IGetUserMembership {
       resourceName: clinic.name,
       resourceType: "CLINIC",
       parentOrganization: {
-        resourceId: clinic.organization.resourceId,
-        name: clinic.organization.name,
+        resourceId: parentOrg.resourceId,
+        name: parentOrg.name,
       },
       role,
       accessVia,

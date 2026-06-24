@@ -10,7 +10,7 @@ export class GetOrganizationClinicsQuery implements IGetOrganizationClinicsQuery
     dto: GetOrganizationClinicsDto,
   ): Promise<GetOrganizationClinicsQueryResult[]> {
     const clinics = await getClient().clinic.findMany({
-      where: { organizationId: dto.resourceId },
+      where: { resource: { parentResourceId: dto.resourceId } },
       include: { resource: { include: { createdByUser: true } } },
     });
 

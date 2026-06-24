@@ -12,7 +12,7 @@ export class GetOrganizationsClinicCountQuery implements IGetOrganizationsClinic
     dto: GetOrganizationsClinicCountDto,
   ): Promise<GetOrganizationsClinicCountQueryResult> {
     const clinicCount = await getClient().clinic.count({
-      where: { organizationId: dto.resourceId },
+      where: { resource: { parentResourceId: dto.resourceId } },
     });
 
     return { clinicCount };

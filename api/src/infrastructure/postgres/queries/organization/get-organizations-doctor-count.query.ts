@@ -15,7 +15,7 @@ export class GetOrganizationsDoctorCountQuery implements IGetOrganizationsDoctor
       where: {
         user: {
           resourceMemberships: {
-            some: { resource: { clinic: { organizationId: dto.resourceId } } },
+            some: { resource: { parentResourceId: dto.resourceId } },
           },
         },
       },

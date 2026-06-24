@@ -27,16 +27,16 @@ export class ClinicRepository implements IClinicRepository {
           type: "CLINIC",
           accountId: data.accountId,
           createdBy: data.createdBy,
+          parentResourceId: data.organizationId,
         },
       });
 
       return getClient().clinic.create({
         data: {
           name: data.name,
-          organizationId: data.organizationId,
           resourceId: resource.id,
           address: data.address,
-          phone: data.phone
+          phone: data.phone,
         },
       });
     });

@@ -28,10 +28,10 @@ export class UserMembershipsQuery implements IUserMembershipsQuery {
         user: true,
         resource: {
           include: {
-            organization: {
-              include: { clinics: { include: { resource: true } } },
-            },
-            clinic: { include: { organization: true } },
+            organization: true,
+            children: { include: { clinic: true } },
+            clinic: true,
+            parent: { include: { organization: true } },
           },
         },
       },
@@ -52,20 +52,24 @@ export class UserMembershipsQuery implements IUserMembershipsQuery {
           role,
           joinedAt: m.createdAt,
         },
-        clinics: org.clinics.map<ClinicAccess>((c) => ({
-          resourceId: c.resourceId,
-          resourceType: c.resource.type,
-          name: c.name,
-          role,
-          accessVia: "INHERITED_FROM_ORG",
-        })),
+        clinics: m.resource.children
+          .filter((child) => child.clinic !== null)
+          .map<ClinicAccess>((child) => ({
+            resourceId: child.id,
+            resourceType: child.type,
+            name: child.clinic!.name,
+            role,
+            accessVia: "INHERITED_FROM_ORG",
+          })),
       });
     }
 
     for (const m of memberships) {
       if (m.resource.type !== "CLINIC") continue;
       const clinic = m.resource.clinic!;
-      const orgId = clinic.organization.resourceId;
+      const parentOrg = m.resource.parent?.organization;
+      if (!parentOrg) continue;
+      const orgId = parentOrg.resourceId;
       const directRole = m.role as UserRole;
 
       let group = groups.get(orgId);
@@ -73,8 +77,8 @@ export class UserMembershipsQuery implements IUserMembershipsQuery {
       if (!group) {
         group = {
           organization: {
-            resourceId: clinic.organization.resourceId,
-            name: clinic.organization.name,
+            resourceId: parentOrg.resourceId,
+            name: parentOrg.name,
           },
           accountId: m.user.accountId,
           membership: null,
