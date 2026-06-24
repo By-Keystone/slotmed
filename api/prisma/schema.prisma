@@ -13,7 +13,7 @@ model User {
   lastName            String   @map("last_name")
   phone               String
   passwordHash        String   @map("password_hash")
-  role                UserRole @default(USER)
+  role                UserRole @default(USER) // Account role
   confirmed           Boolean  @default(false)
   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
   createdAt           DateTime @default(now()) @map("created_at")
