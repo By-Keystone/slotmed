@@ -1,4 +1,5 @@
 import { getClinicDoctorsSchema } from "@/application/queries/clinic/get-clinic-doctors.query";
+import { getClinicUsersSchema } from "@/application/queries/clinic/get-clinic-users.query";
 import {
   CreateClinicDto,
   createClinicSchema,
@@ -7,6 +8,7 @@ import {
 import { GetClinicsUseCase } from "@/application/use-cases/clinic/get-clinics.usecase";
 import { IClinicRepository } from "@/domain/repositories/clinic.repository";
 import { GetClinicDoctorsQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-doctors.query";
+import { GetClinicUsersQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-users.query";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
 
@@ -84,6 +86,27 @@ export default async function clinicRoutes(
 
         return reply.internalServerError(
           "Error occurred when getting clinic doctors",
+        );
+      }
+    },
+  );
+
+  app.get(
+    "/clinic/:resourceId/users",
+    { schema: { params: getClinicUsersSchema } },
+    async (request, reply) => {
+      try {
+        const query = new GetClinicUsersQuery();
+
+        const { resourceId } = request.params;
+
+        const users = await query.execute(resourceId);
+
+        return reply.status(200).send(users);
+      } catch (error) {
+        console.error("Error ocurred when getting clinic users:", error);
+        return reply.internalServerError(
+          "Error ocurred when getting clinic users",
         );
       }
     },
