@@ -10,8 +10,6 @@ import { ResourceType } from "@prisma/client";
 
 export class ClinicRepository implements IClinicRepository {
   async save(data: CreateClinicData): Promise<Clinic> {
-    console.log(data);
-
     const clinic = await inTransaction(async () => {
       const parentResource = await getClient().resource.findFirstOrThrow({
         where: { id: data.organizationId },
@@ -45,9 +43,10 @@ export class ClinicRepository implements IClinicRepository {
   }
 
   async update(id: string, data: Partial<Clinic>): Promise<Clinic> {
+    const { resourceId: _resourceId, ...rest } = data;
     const clinic = await getClient().clinic.update({
       where: { resourceId: id },
-      data,
+      data: rest,
     });
     return toDomain(clinic);
   }

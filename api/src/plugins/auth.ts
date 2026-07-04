@@ -1,23 +1,18 @@
-import { UserRole } from "@/domain/enums/user-role";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
-import { JWTPayload, jwtVerify } from "jose";
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "dev-secret-change-in-production",
-);
+import { fromNodeHeaders } from "better-auth/node";
+import auth from "@/infrastructure/vendors/auth/better-auth/auth";
 
 /**
- * An extension of the JWTPayload after verifying the token from the `Authorization` header.
- *
- * Mantenemos el JWT minimal — solo identidad inmutable. Cualquier flag mutable
- * (onboardingCompleted, isDoctor, etc.) debe leerse del DB a través de
- * `requireOnboarded` o consultando el repo directamente.
+ * Identidad resuelta desde la sesión de Better Auth e inyectada en la request.
+ * `accountId` puede ser `null` hasta que el usuario completa el onboarding;
+ * usa `requireAccount` en rutas que necesiten un tenant garantizado.
  */
-export interface UserClaims extends JWTPayload {
+export interface UserClaims {
   userId: string;
   email: string;
-  accountId: string;
+  accountId: string | null;
+  role: string;
 }
 
 declare module "fastify" {
@@ -27,32 +22,41 @@ declare module "fastify" {
 
   interface FastifyInstance {
     authenticate: (request: FastifyRequest) => Promise<void>;
+    requireAccount: (request: FastifyRequest) => Promise<void>;
   }
 }
 
-/**
- *
- * This plugin verifies the token sent in the `Authorization` header and also injects the token info in the request
- *
- * See `UserClaims` for additional information about the token payload.
- */
 async function authPlugin(fastify: FastifyInstance) {
   fastify.decorate("authenticate", async (request: FastifyRequest) => {
-    const authHeader = request.headers["authorization"];
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(request.headers),
+    });
 
-    if (!authHeader?.startsWith("Bearer ")) {
-      console.error("Missing authorization token");
-      throw fastify.httpErrors.unauthorized("Missing authorization token");
+    if (!session) {
+      throw fastify.httpErrors.unauthorized("Missing or invalid session");
     }
 
-    const token = authHeader.split("Bearer")[1].trim();
+    const sessionUser = session.user as {
+      id: string;
+      email: string;
+      accountId?: string | null;
+      role?: string | null;
+    };
 
-    try {
-      const { payload } = await jwtVerify<UserClaims>(token, JWT_SECRET);
-      request.user = payload;
-    } catch {
-      console.error("Invalid or expired token");
-      throw fastify.httpErrors.unauthorized("Invalid or expired token");
+    request.user = {
+      userId: sessionUser.id,
+      email: sessionUser.email,
+      accountId: sessionUser.accountId ?? null,
+      role: sessionUser.role ?? "USER",
+    };
+  });
+
+  fastify.decorate("requireAccount", async (request: FastifyRequest) => {
+    if (!request.user) {
+      await fastify.authenticate(request);
+    }
+    if (!request.user.accountId) {
+      throw fastify.httpErrors.forbidden("No account associated with user");
     }
   });
 }

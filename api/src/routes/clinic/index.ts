@@ -22,7 +22,7 @@ export default async function clinicRoutes(
 ) {
   const { clinicRepository } = opts;
 
-  fastify.addHook("preHandler", fastify.authenticate);
+  fastify.addHook("preHandler", fastify.requireAccount);
   fastify.addHook("preHandler", fastify.authorize);
 
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -35,7 +35,7 @@ export default async function clinicRoutes(
         const useCase = new CreateClinicUseCase(clinicRepository);
 
         const dto: CreateClinicDto = {
-          accountId: request.user.accountId,
+          accountId: request.user.accountId!,
           createdBy: request.user.userId,
           ...request.body,
         };

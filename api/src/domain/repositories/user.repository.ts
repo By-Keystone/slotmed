@@ -5,7 +5,6 @@ export interface CreateUserData {
   name: string;
   lastName: string;
   phone: string;
-  passwordHash: string;
 }
 
 export interface IUserRepository {

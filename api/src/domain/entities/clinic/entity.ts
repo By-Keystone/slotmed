@@ -1,8 +1,8 @@
 export interface Clinic {
   resourceId: string;
   name: string;
-  address: string | null;
-  phone: string | null;
+  address: string;
+  phone: string;
   createdAt: Date;
   updatedAt: Date;
 }

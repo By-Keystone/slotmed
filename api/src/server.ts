@@ -9,9 +9,7 @@ import {
 } from "@fastify/type-provider-zod";
 import authPlugin from "./plugins/auth";
 import authorizationPlugin from "./plugins/authorization";
-import authRoutes from "./routes/auth/index";
 import { PrismaUserRepository } from "./infrastructure/postgres/repositories/user.repository";
-import { PrismaRefreshTokenRepository } from "./infrastructure/postgres/repositories/refresh-token.repository";
 import { SESEmailService } from "./infrastructure/services/email-service/ses.service";
 import { ClinicRepository } from "./infrastructure/postgres/repositories/clinic.repository";
 import clinicRoutes from "./routes/clinic/index";
@@ -19,13 +17,12 @@ import { DoctorRepository } from "./infrastructure/postgres/repositories/doctor.
 import { OrganizationRepository } from "./infrastructure/postgres/repositories/organization.repository";
 import organizationRoutes from "./routes/organization/index";
 import userRoutes from "./routes/user/index";
+import accountRoutes from "./routes/account/index";
 import { AccountRepository } from "./infrastructure/postgres/repositories/account.repository";
 import { SubscriptionRepository } from "./infrastructure/postgres/repositories/subscription.repository";
 import { PostgresTransactionManager } from "./infrastructure/postgres/transaction-manager";
-import { AuthStepResolver } from "./infrastructure/auth/auth-step-resolver";
-import { JwtSessionTokenSigner } from "./infrastructure/auth/jwt-session-token-signer";
-import { JwtAuthTokenService } from "./infrastructure/auth/jwt-auth-token-service";
-import { FinalizeAuth } from "./application/use-cases/auth/_shared/finalize-auth";
+import { fromNodeHeaders } from "better-auth/node";
+import auth from "./infrastructure/vendors/auth/better-auth/auth";
 
 const fastify = Fastify({
   logger:
@@ -48,7 +45,6 @@ fastify.setSerializerCompiler(serializerCompiler);
 
 async function start() {
   const userRepository = new PrismaUserRepository();
-  const refreshTokenRepo = new PrismaRefreshTokenRepository();
   const emailService = new SESEmailService({
     region: process.env.AWS_REGION!,
     from: process.env.EMAIL_FROM!,
@@ -59,21 +55,6 @@ async function start() {
   const accountRepository = new AccountRepository();
   const subscriptionRepository = new SubscriptionRepository();
   const transactionManager = new PostgresTransactionManager();
-
-  const jwtSecret = process.env.JWT_SECRET!;
-  const jwtSecretBytes = new TextEncoder().encode(jwtSecret);
-  const sessionTokenSigner = new JwtSessionTokenSigner(jwtSecretBytes);
-  const authTokenService = new JwtAuthTokenService(
-    jwtSecretBytes,
-    refreshTokenRepo,
-    accountRepository,
-  );
-  const authStepResolver = new AuthStepResolver();
-  const finalizeAuth = new FinalizeAuth(
-    authStepResolver,
-    authTokenService,
-    sessionTokenSigner,
-  );
 
   await fastify.register(cors, {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -86,19 +67,39 @@ async function start() {
   await fastify.register(authorizationPlugin, {
     userRepository,
   });
-  await fastify.register(authRoutes, {
-    userRepo: userRepository,
-    refreshTokenRepo,
-    emailService,
-    doctorRepository,
-    accountRepository,
-    subscriptionRepository,
-    transactionManager,
-    finalizeAuth,
-    sessionTokenSigner,
-    jwtSecret,
-    frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
+
+  fastify.route({
+    method: ["GET", "POST"],
+    url: "/api/auth/*",
+    async handler(request, reply) {
+      try {
+        // Construct request URL
+        const url = new URL(request.url, `http://${request.headers.host}`);
+
+        // Convert Fastify headers to standard Headers object
+        const headers = fromNodeHeaders(request.headers);
+        // Create Fetch API-compatible request
+        const req = new Request(url.toString(), {
+          method: request.method,
+          headers,
+          ...(request.body ? { body: JSON.stringify(request.body) } : {}),
+        });
+        // Process authentication request
+        const response = await auth.handler(req);
+        // Forward response to client
+        reply.status(response.status);
+        response.headers.forEach((value, key) => reply.header(key, value));
+        return reply.send(response.body ? await response.text() : null);
+      } catch (error) {
+        fastify.log.error(`Authentication Error: ${error}`);
+        return reply.status(500).send({
+          error: "Internal authentication error",
+          code: "AUTH_FAILURE",
+        });
+      }
+    },
   });
+
   await fastify.register(clinicRoutes, {
     clinicRepository,
   });
@@ -111,6 +112,13 @@ async function start() {
     prefix: "/user",
     userRepository,
     doctorRepository,
+  });
+
+  await fastify.register(accountRoutes, {
+    userRepository,
+    accountRepository,
+    subscriptionRepository,
+    transactionManager,
   });
 
   fastify.get("/health", async () => ({ status: "ok" }));

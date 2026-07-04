@@ -6,7 +6,6 @@ export interface User {
   name: string;
   lastName: string;
   phone: string;
-  passwordHash: string;
   confirmed: boolean;
   onboardingCompleted: boolean;
   accountId: string | null;

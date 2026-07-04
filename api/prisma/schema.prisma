@@ -7,12 +7,11 @@ datasource db {
 }
 
 model User {
-  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                  String   @id @default(uuid(7)) @db.Uuid
   email               String   @unique
   name                String
   lastName            String   @map("last_name")
   phone               String
-  passwordHash        String   @map("password_hash")
   role                UserRole @default(USER) // Account role
   confirmed           Boolean  @default(false)
   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
@@ -20,17 +19,20 @@ model User {
   updatedAt           DateTime @updatedAt @map("updated_at")
   accountId           String?  @map("account_id") @db.Uuid
 
-  refreshTokens       RefreshToken[]
   doctor              Doctor?
   resourcesCreated    Resource[]
   resourceMemberships UserResourceMembership[] @relation(name: "user_membership")
   membershipsCreated  UserResourceMembership[] @relation(name: "memberships_created")
 
+  image        String?
+  sessions     Session[]
+  authaccounts AuthAccount[]
+
   @@map("user")
 }
 
 model Resource {
-  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id               String       @id @default(uuid(7)) @db.Uuid
   type             ResourceType
   parentResourceId String?      @map("parent_resource_id") @db.Uuid
   createdBy        String       @map("created_by") @db.Uuid
@@ -73,7 +75,7 @@ model Clinic {
 }
 
 model UserResourceMembership {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String   @id @default(uuid(7)) @db.Uuid
   userId     String   @map("user_id") @db.Uuid
   resourceId String   @map("resource_id") @db.Uuid
   accountId  String   @map("account_id") @db.Uuid
@@ -90,19 +92,8 @@ model UserResourceMembership {
   @@map("user_resource_membership")
 }
 
-model RefreshToken {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  token     String   @unique
-  userId    String   @map("user_id") @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("refresh_token")
-}
-
 model Doctor {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String   @id @default(uuid(7)) @db.Uuid
   userId    String   @unique @map("user_id") @db.Uuid
   specialty String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -116,7 +107,7 @@ model Doctor {
 }
 
 model Subscription {
-  id        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String             @id @default(uuid(7)) @db.Uuid
   accountId String             @unique @map("account_id") @db.Uuid
   status    SubscriptionStatus
   plan      Plan
@@ -127,7 +118,7 @@ model Subscription {
 }
 
 model Account {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String   @id @default(uuid(7)) @db.Uuid
   name      String
   ownerId   String   @map("owner_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at")
@@ -140,8 +131,8 @@ model Account {
 }
 
 // model DoctorSchedule {
-//   id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   doctorId  String @map("doctor_id") @db.Uuid
+//   id        String @id @default(uuid(7)) @db.Uuid
+//   doctorId  String @map("doctor_id")
 //   dayOfWeek Int    @map("day_of_week") // 0=Sunday, 6=Saturday
 //   startTime String @map("start_time") // "09:00"
 //   endTime   String @map("end_time") // "17:00"
@@ -151,8 +142,8 @@ model Account {
 // }
 
 // model Appointment {
-//   id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-//   doctorId     String            @map("doctor_id") @db.Uuid
+//   id           String            @id @default(uuid(7)) @db.Uuid
+//   doctorId     String            @map("doctor_id")
 //   patientName  String            @map("patient_name")
 //   patientPhone String            @map("patient_phone")
 //   scheduledAt  DateTime          @map("scheduled_at")
@@ -188,4 +179,52 @@ enum SubscriptionStatus {
 
 enum Plan {
   BASIC
+}
+
+model Session {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model AuthAccount {
+  id                    String    @id @default(uuid(7)) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("authAccount")
+}
+
+model Verification {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }

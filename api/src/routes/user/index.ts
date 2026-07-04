@@ -22,14 +22,17 @@ export default async function userRoutes(
 
   const app = fastify.withTypeProvider<ZodTypeProvider>();
 
-  app.get("/me/memberships", async (request, reply) => {
-    try {
-      const query = new UserMembershipsQuery();
+  app.get(
+    "/me/memberships",
+    { preHandler: [fastify.requireAccount] },
+    async (request, reply) => {
+      try {
+        const query = new UserMembershipsQuery();
 
-      const memberships = await query.execute(
-        request.user.userId,
-        request.user.accountId,
-      );
+        const memberships = await query.execute(
+          request.user.userId,
+          request.user.accountId!,
+        );
 
       return reply.status(200).send({ memberships });
     } catch (error) {
@@ -63,6 +66,8 @@ export default async function userRoutes(
         confirmed: user.confirmed,
         isDoctor: !!doctor,
         onboardingCompleted: user.onboardingCompleted,
+        accountId: request.user.accountId,
+        role: request.user.role,
       });
     },
   );

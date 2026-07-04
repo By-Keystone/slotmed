@@ -2,7 +2,6 @@ import { ApplicationError } from "@/application/errors/application.errors";
 import { getOrganizationClinicsSchema } from "@/application/queries/organization/get-organization-clinics.query";
 import { getOrganizationsClinicCountSchema } from "@/application/queries/organization/get-organizations-clinic-count.query";
 import { getOrganizationsDoctorCountSchema } from "@/application/queries/organization/get-organizations-doctor-count.query";
-import { ForbiddenError } from "@/application/use-cases/auth/login.usecase";
 import {
   CreateOrganizationDto,
   createOrganizationSchema,
@@ -27,7 +26,7 @@ export default async function organizationRoutes(
 ) {
   const { organizationRepository, userRepository } = opts;
 
-  fastify.addHook("preHandler", fastify.authenticate);
+  fastify.addHook("preHandler", fastify.requireAccount);
   fastify.addHook("preHandler", fastify.authorize);
 
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -49,7 +48,7 @@ export default async function organizationRoutes(
 
         console.log(request.user);
         const body: CreateOrganizationDto = {
-          accountId: request.user.accountId,
+          accountId: request.user.accountId!,
           name: request.body.name,
           userId: request.user.userId,
         };

@@ -8,7 +8,6 @@ export function toDomain(user: PrismaUser): User {
     name: user.name,
     lastName: user.lastName,
     phone: user.phone,
-    passwordHash: user.passwordHash,
     confirmed: user.confirmed,
     onboardingCompleted: user.onboardingCompleted,
     accountId: user.accountId,

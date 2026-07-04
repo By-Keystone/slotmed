@@ -1,14 +1,14 @@
 "use server";
 
-import z, { treeifyError } from "zod";
-import { AuthExpiredError } from "@/lib/api/errors";
-import { redirect } from "next/navigation";
 import { doFetch } from "@/lib/api/fetch";
+import { tags } from "@/lib/api/memberships";
 import { getSession } from "@/lib/auth/session";
+import { revalidateTag } from "next/cache";
+import { redirect } from "next/navigation";
+import z, { treeifyError } from "zod";
 
 const createOrganizationSchema = z.object({
-  name: z.string("Name is required"),
-  userId: z.string().optional(),
+  name: z.string(),
 });
 
 export type CreateOrganizationState =
@@ -23,13 +23,17 @@ export type CreateOrganizationState =
         >
       >;
     }
-  | { status: "success"; redirectTo: string }
-  | { status: "auth-expired"; redirectTo: string };
+  | { status: "success" }
+  | { status: "auth-expired" };
 
 export const createOrganizationAction = async (
   _prevState: CreateOrganizationState,
   data: FormData,
 ): Promise<CreateOrganizationState> => {
+  const session = await getSession();
+
+  if (!session) return { status: "auth-expired" };
+
   const parsed = createOrganizationSchema.safeParse({
     name: data.get("name"),
   });
@@ -42,43 +46,26 @@ export const createOrganizationAction = async (
     };
   }
 
-  const session = await getSession();
+  let organizationId;
 
   try {
-    const response = await doFetch("/organization", {
+    const response = await doFetch("/organization?onboarding=false", {
       method: "POST",
-      body: JSON.stringify({
-        ...parsed.data,
-        userId: parsed.data.userId || session?.userId,
-      }),
+      body: JSON.stringify(parsed.data),
     });
 
     if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as {
-        message?: string;
-      } | null;
+      const data = await response.json().catch(() => {});
 
-      return {
-        status: "error",
-        message:
-          payload?.message ??
-          "An unexpected response was received from the server.",
-      };
+      return { status: "error", message: data.message ?? "Datos inválidos" };
     }
+
+    revalidateTag(tags.memberships());
+    return { status: "success" };
   } catch (error) {
-    if (error instanceof AuthExpiredError) {
-      return redirect("/login");
-    }
-
     return {
       status: "error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "No se pudo crear la organización",
+      message: error instanceof Error ? error.message : "Ha ocurrido un error",
     };
   }
-
-  console.log("ABOUT TO REDIRECT TO SELECT");
-  redirect("/select");
 };
