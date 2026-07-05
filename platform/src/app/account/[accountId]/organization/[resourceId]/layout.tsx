@@ -11,7 +11,7 @@ export default async function OrganizationLayout({
   params,
 }: {
   children: ReactNode;
-  params: { accountId: string };
+  params: Promise<{ accountId: string }>;
 }) {
   const { resourceId, resourceType } = await getActiveResource();
   const { accountId } = await params;

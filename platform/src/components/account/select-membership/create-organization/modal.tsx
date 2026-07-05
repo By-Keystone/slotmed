@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { CreateOrganizationForm } from "@/components/organization/create-organization/form";
-import { createOrganizationAction } from "@/components/organization/create-organization/action";
+import { createOrganizationAction } from "@/lib/actions/organization/create-organization.action";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

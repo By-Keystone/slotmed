@@ -11,7 +11,7 @@ import {
 import { useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { CreateClinicForm } from "./create-clinic/form";
-import { createClinicAction } from "./create-clinic/action";
+import { createClinicAction } from "@/lib/actions/clinic/create-clinic.action";
 
 interface Props {
   isOpen: boolean;

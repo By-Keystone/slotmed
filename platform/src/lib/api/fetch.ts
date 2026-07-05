@@ -1,19 +1,22 @@
 import "server-only";
 
-import { cookies } from "next/headers";
-import { COOKIE_NAMES } from "../auth/cookies";
+import { headers } from "next/headers";
 import { AuthExpiredError } from "./errors";
 
 const API_URL = process.env.API_URL;
 
+/**
+ * Llama al api reenviando la cookie de sesión de Better Auth (el api la valida
+ * con `getSession`). Sustituye al antiguo header `Authorization: Bearer`.
+ */
 export async function doFetch(to: string, init?: RequestInit) {
-  const accessToken = (await cookies()).get(COOKIE_NAMES.accessToken)?.value;
+  const cookie = (await headers()).get("cookie") ?? "";
 
   const response = await fetch(`${API_URL}${to}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
-      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      ...(cookie && { cookie }),
       ...init?.headers,
     },
   });
