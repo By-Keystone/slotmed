@@ -5,13 +5,11 @@ import mjml2html from "mjml";
 
 export type EmailTemplate =
   | "confirm-email"
-  | "reset-password"
-  | "doctor-invitation";
+  | "invite-user"
 
 interface TemplateVariables {
   "confirm-email": { name: string; confirmUrl: string };
-  "reset-password": { name: string; resetUrl: string };
-  "doctor-invitation": { name: string; clinicName: string; inviteUrl: string };
+  "invite-user": { name: string; resourceName: string; inviteUrl: string };
 }
 
 const compiledCache = new Map<EmailTemplate, HandlebarsTemplateDelegate>();

@@ -23,6 +23,7 @@ import { SubscriptionRepository } from "./infrastructure/postgres/repositories/s
 import { PostgresTransactionManager } from "./infrastructure/postgres/transaction-manager";
 import { fromNodeHeaders } from "better-auth/node";
 import auth from "./infrastructure/vendors/auth/better-auth/auth";
+import userInvitationRoutes from "./routes/user-invitation";
 
 const fastify = Fastify({
   logger:
@@ -49,6 +50,7 @@ async function start() {
     region: process.env.AWS_REGION!,
     from: process.env.EMAIL_FROM!,
   });
+
   const clinicRepository = new ClinicRepository();
   const doctorRepository = new DoctorRepository();
   const organizationRepository = new OrganizationRepository();
@@ -112,6 +114,8 @@ async function start() {
     prefix: "/user",
     userRepository,
     doctorRepository,
+    transactionManager,
+    emailService
   });
 
   await fastify.register(accountRoutes, {
@@ -121,6 +125,10 @@ async function start() {
     transactionManager,
   });
 
+  await fastify.register(userInvitationRoutes, { 
+    prefix: '/invitations'
+  });
+  
   fastify.get("/health", async () => ({ status: "ok" }));
 
   const port = Number(process.env.PORT) || 4000;

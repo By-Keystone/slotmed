@@ -1,21 +1,29 @@
+import { IEmailService } from "@/application/ports/email-service.port";
 import { getUserMembershipSchema } from "@/application/queries/membership/get-user-membership.query";
+import {
+  inviteUserSchema,
+  InviteUserUseCase,
+} from "@/application/use-cases/user/invite-user.usecase";
 import { IDoctorRepository } from "@/domain/repositories/doctor.repository";
 import { IUserRepository } from "@/domain/repositories/user.repository";
+import { ITransactionManager } from "@/domain/services/transaction-manager";
 import { GetUserMembership } from "@/infrastructure/postgres/queries/membership/get-user-membership.query";
 import { UserMembershipsQuery } from "@/infrastructure/postgres/queries/membership/get-user-memberships.query";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
-import { request } from "http";
 
 interface UserRoutesOptions {
   userRepository: IUserRepository;
   doctorRepository: IDoctorRepository;
+  transactionManager: ITransactionManager;
+  emailService: IEmailService;
 }
 export default async function userRoutes(
   fastify: FastifyInstance,
   opts: UserRoutesOptions,
 ) {
-  const { doctorRepository, userRepository } = opts;
+  const { doctorRepository, userRepository, transactionManager, emailService } =
+    opts;
 
   fastify.addHook("preHandler", fastify.authenticate);
   fastify.addHook("preHandler", fastify.authorize);
@@ -34,18 +42,19 @@ export default async function userRoutes(
           request.user.accountId!,
         );
 
-      return reply.status(200).send({ memberships });
-    } catch (error) {
-      console.error(
-        "Unknown error occurred when getting user memberships:",
-        error,
-      );
+        return reply.status(200).send({ memberships });
+      } catch (error) {
+        console.error(
+          "Unknown error occurred when getting user memberships:",
+          error,
+        );
 
-      return reply
-        .status(500)
-        .send({ message: "Could not get user memberships" });
-    }
-  });
+        return reply
+          .status(500)
+          .send({ message: "Could not get user memberships" });
+      }
+    },
+  );
 
   app.get(
     "/me",
@@ -96,6 +105,30 @@ export default async function userRoutes(
             ? error.message
             : "Ocurrió un error al obtener membership",
         );
+      }
+    },
+  );
+
+  app.post(
+    "/invite",
+    {
+      schema: { body: inviteUserSchema },
+      preHandler: [fastify.requireAccount],
+    },
+    async (request, reply) => {
+      try {
+        const useCase = new InviteUserUseCase(transactionManager, {
+          emailService,
+        });
+
+        await useCase.execute({
+          ...request.body,
+          createdBy: request.user.userId,
+          accountId: request.user.accountId!,
+        });
+      } catch (error) {
+        console.error({ error });
+        return reply.status(500).send({ message: error });
       }
     },
   );

@@ -24,9 +24,10 @@ model User {
   resourceMemberships UserResourceMembership[] @relation(name: "user_membership")
   membershipsCreated  UserResourceMembership[] @relation(name: "memberships_created")
 
-  image        String?
-  sessions     Session[]
-  authaccounts AuthAccount[]
+  image               String?
+  sessions            Session[]
+  authaccounts        AuthAccount[]
+  userInvitationsSent UserInvitation[]
 
   @@map("user")
 }
@@ -75,18 +76,19 @@ model Clinic {
 }
 
 model UserResourceMembership {
-  id         String   @id @default(uuid(7)) @db.Uuid
-  userId     String   @map("user_id") @db.Uuid
-  resourceId String   @map("resource_id") @db.Uuid
-  accountId  String   @map("account_id") @db.Uuid
-  createdAt  DateTime @default(now()) @map("created_at")
-  createdBy  String   @map("created_by") @db.Uuid
-  role       UserRole @default(ADMIN)
-
-  account       Account  @relation(fields: [accountId], references: [id])
-  user          User     @relation(fields: [userId], references: [id], name: "user_membership")
-  resource      Resource @relation(fields: [resourceId], references: [id])
-  createdByUser User     @relation(fields: [createdBy], references: [id], name: "memberships_created")
+  id            String          @id @default(uuid(7)) @db.Uuid
+  userId        String          @map("user_id") @db.Uuid
+  resourceId    String          @map("resource_id") @db.Uuid
+  accountId     String          @map("account_id") @db.Uuid
+  createdAt     DateTime        @default(now()) @map("created_at")
+  createdBy     String          @map("created_by") @db.Uuid
+  role          UserRole        @default(ADMIN)
+  account       Account         @relation(fields: [accountId], references: [id])
+  user          User            @relation(fields: [userId], references: [id], name: "user_membership")
+  resource      Resource        @relation(fields: [resourceId], references: [id])
+  createdByUser User            @relation(fields: [createdBy], references: [id], name: "memberships_created")
+  invitation    UserInvitation?
+  deletedAt     DateTime?       @map("deleted_at")
 
   @@unique([userId, resourceId])
   @@map("user_resource_membership")
@@ -128,6 +130,21 @@ model Account {
   resources               Resource[]
 
   @@map("account")
+}
+
+model UserInvitation {
+  id           String                 @id @default(uuid(7)) @db.Uuid
+  token        String                 @unique
+  membershipId String                 @unique @map("membership_id") @db.Uuid
+  invitedBy    String                 @map("invited_by") @db.Uuid
+  createdAt    DateTime               @default(now()) @map("created_at")
+  expiresAt    DateTime               @map("expires_at")
+  acceptedAt   DateTime?              @map("accepted_at")
+  status       InvitationStatus       @default(INVITED)
+  inviter      User                   @relation(fields: [invitedBy], references: [id], onDelete: NoAction)
+  membership   UserResourceMembership @relation(fields: [membershipId], references: [id], onDelete: NoAction)
+
+  @@map("user_invitation")
 }
 
 // model DoctorSchedule {
@@ -227,4 +244,10 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+enum InvitationStatus {
+  INVITED
+  ACCEPTED
+  EXPIRED
 }
