@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { Button } from "../ui/button";
+import { InviteUserModal } from "./invite-user/modal";
 
 export const UsersTopHeader = () => {
-  // El formulario de invitación se implementa en WIZ-16.
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   return (
@@ -15,7 +15,10 @@ export const UsersTopHeader = () => {
         <UserPlus className="mr-2 h-4 w-4" />
         Invitar usuario
       </Button>
-      {/* TODO(WIZ-16): renderizar aquí el modal/formulario de invitación */}
+      <InviteUserModal
+        isOpen={inviteModalOpen}
+        setIsOpen={setInviteModalOpen}
+      />
     </div>
   );
 };
