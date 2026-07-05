@@ -4,7 +4,7 @@ import { IUserRepository } from "@/domain/repositories/user.repository";
 import { ITransactionManager } from "@/domain/services/transaction-manager";
 import { getClient } from "@/infrastructure/postgres/transaction-context";
 import { renderTemplate } from "@/infrastructure/services/email-service/template-renderer";
-import { UserRole } from "@prisma/client";
+import { MembershipRole, UserRole } from "@prisma/client";
 import { userAc } from "better-auth/plugins/admin/access";
 import { randomBytes } from "node:crypto";
 import z from "zod";
@@ -14,7 +14,7 @@ export const inviteUserSchema = z.object({
   name: z.string("Name is required"),
   lastName: z.string("Lastname is required"),
   phone: z.string("Phone is required"),
-  role: z.string("Role is required"),
+  role: z.enum(MembershipRole, { error: "Membership role is required" }),
   resourceId: z.string("Resource ID is required"),
 });
 
@@ -60,7 +60,7 @@ export class InviteUserUseCase {
 
       const membership = await client.userResourceMembership.create({
         data: {
-          role: data.role as UserRole,
+          role: data.role,
           accountId: data.accountId,
           userId: user.id,
           resourceId: data.resourceId,
