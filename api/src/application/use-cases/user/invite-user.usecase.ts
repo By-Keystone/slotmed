@@ -1,11 +1,9 @@
 import { NotFound } from "@/application/errors/not-found.error";
 import { IEmailService } from "@/application/ports/email-service.port";
-import { IUserRepository } from "@/domain/repositories/user.repository";
 import { ITransactionManager } from "@/domain/services/transaction-manager";
 import { getClient } from "@/infrastructure/postgres/transaction-context";
 import { renderTemplate } from "@/infrastructure/services/email-service/template-renderer";
 import { MembershipRole, UserRole } from "@prisma/client";
-import { userAc } from "better-auth/plugins/admin/access";
 import { randomBytes } from "node:crypto";
 import z from "zod";
 
@@ -46,6 +44,13 @@ export class InviteUserUseCase {
           accountId: data.accountId,
         },
       });
+
+      if (data.role === "DOCTOR")
+        await client.doctor.create({
+          data: {
+            userId: user.id,
+          },
+        });
 
       const resource = await client.clinic.findFirst({
         where: { resourceId: data.resourceId },
