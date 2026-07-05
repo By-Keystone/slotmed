@@ -18,6 +18,8 @@ interface AppProviderProps {
 }
 
 export function AppProvider({ membership, user, children }: AppProviderProps) {
+  console.log({ membership });
+
   return (
     <AppContext.Provider value={{ membership, user }}>
       {children}

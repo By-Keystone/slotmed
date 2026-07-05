@@ -2,7 +2,10 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
-import { createAccountAction, type CreateAccountState } from "./actions";
+import {
+  createAccountAction,
+  type CreateAccountState,
+} from "@/lib/actions/account/create-account.action";
 
 const initialState: CreateAccountState = { status: "idle" };
 

@@ -12,3 +12,11 @@ export type ClinicWithUser = Clinic & {
     email: string;
   };
 };
+
+export type ClinicUser = {
+  name: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: string;
+};

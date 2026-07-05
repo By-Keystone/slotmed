@@ -12,7 +12,7 @@ model User {
   name                String
   lastName            String   @map("last_name")
   phone               String
-  role                UserRole @default(USER) // Account role
+  role                UserRole @default(USER) // Account Role
   confirmed           Boolean  @default(false)
   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
   createdAt           DateTime @default(now()) @map("created_at")
@@ -82,7 +82,7 @@ model UserResourceMembership {
   accountId     String          @map("account_id") @db.Uuid
   createdAt     DateTime        @default(now()) @map("created_at")
   createdBy     String          @map("created_by") @db.Uuid
-  role          UserRole        @default(ADMIN)
+  role          MembershipRole  @default(USER) // Membership Role
   account       Account         @relation(fields: [accountId], references: [id])
   user          User            @relation(fields: [userId], references: [id], name: "user_membership")
   resource      Resource        @relation(fields: [resourceId], references: [id])
@@ -250,4 +250,9 @@ enum InvitationStatus {
   INVITED
   ACCEPTED
   EXPIRED
+}
+
+enum MembershipRole {
+  DOCTOR
+  USER
 }

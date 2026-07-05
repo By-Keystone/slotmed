@@ -1,33 +1,44 @@
-import { cookies } from "next/headers";
-import { cache } from "react";
-import { decodeJwt, JWTPayload } from "jose";
-import { COOKIE_NAMES } from "./cookies";
+import "server-only";
 
-/**
- * Identity claims encoded in the access token. Anything mutable lives in `Me`
- * (see `lib/auth/me.ts`) and is fetched from the backend.
- */
-export interface UserClaims extends JWTPayload {
-  userId: string;
+import { cache } from "react";
+import { headers } from "next/headers";
+
+const API_URL = process.env.API_URL;
+
+export interface SessionUser {
+  id: string;
   email: string;
-  accountId?: string;
+  name: string;
+  lastName: string;
+  phone: string;
+  role: string;
+  emailVerified: boolean;
+  onboardingCompleted: boolean;
+  accountId: string | null;
+  image: string | null;
 }
 
-export const getSession = cache(async () => {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get(COOKIE_NAMES.accessToken)?.value;
+/**
+ * Lee la sesión de Better Auth desde el server reenviando la cookie al api.
+ * Cacheado por request con React `cache()`.
+ */
+export const getSession = cache(
+  async (): Promise<{ user: SessionUser } | null> => {
+    const cookie = (await headers()).get("cookie") ?? "";
+    if (!cookie) return null;
 
-  if (!accessToken) return null;
+    try {
+      const res = await fetch(`${API_URL}/api/auth/get-session`, {
+        headers: { cookie },
+      });
+      if (!res.ok) return null;
 
-  try {
-    const payload: UserClaims = decodeJwt(accessToken);
+      const data = await res.json();
+      if (!data?.user) return null;
 
-    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      return data as { user: SessionUser };
+    } catch {
       return null;
     }
-
-    return payload;
-  } catch {
-    return null;
-  }
-});
+  },
+);

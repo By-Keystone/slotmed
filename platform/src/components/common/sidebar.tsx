@@ -4,13 +4,14 @@ import { LogOut, Stethoscope } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useMemo } from "react";
 import { getNavLinks } from "./utils";
-import { logout } from "@/app/account/actions";
+import { authClient } from "@/lib/auth/client";
 import { useApp } from "@/context/app/app.context";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export function Sidebar() {
   const { membership } = useApp();
   const params = useParams<{ accountId: string }>();
+  const router = useRouter();
 
   const { resourceType, resourceId, role } = membership;
 
@@ -25,9 +26,13 @@ export function Sidebar() {
     [membership],
   );
 
-  const signOut = async (e: FormEvent) => {
+  const handleSignOut = async (e: FormEvent) => {
     e.stopPropagation();
-    await logout();
+    await authClient.signOut();
+    // Cookies de app (no httpOnly) — se limpian aquí; la de sesión la borra BA.
+    document.cookie = "resource_id=; path=/; max-age=0";
+    document.cookie = "resource_type=; path=/; max-age=0";
+    router.push("/login");
   };
   return (
     <aside className="hidden md:flex w-60 flex-col border-r border-gray-200 bg-white px-4 py-6">
@@ -57,8 +62,8 @@ export function Sidebar() {
       <div className="border-t border-gray-100 pt-4">
         <p className="px-3 text-xs text-gray-400 truncate mb-2"></p>
         <button
-          type="submit"
-          onClick={signOut}
+          type="button"
+          onClick={handleSignOut}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />

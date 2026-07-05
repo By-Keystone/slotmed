@@ -1,76 +1,44 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { PhoneInput } from "@/components/ui/phone-input";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerAction, RegisterState } from "./actions";
-
-const initialState: RegisterState = { status: "idle" };
+import { PhoneInput } from "@/components/ui/phone-input";
+import { authClient } from "@/lib/auth/client";
 
 export default function RegisterPage() {
-  const [state, register, isPending] = useActionState(
-    registerAction,
-    initialState,
-  );
-  const [countdown, setCountdown] = useState(5);
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-  useEffect(() => {
-    if (state.status !== "success") return;
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setPending(true);
 
-    if (countdown <= 0) {
-      router.replace("/login");
+    const form = new FormData(event.currentTarget);
+
+    const { error } = await authClient.signUp.email({
+      name: form.get("name") as string,
+      lastName: form.get("lastName") as string,
+      email: form.get("email") as string,
+      phone: form.get("phone") as string,
+      password: form.get("password") as string,
+      callbackURL: "/onboarding",
+    });
+
+    setPending(false);
+
+    if (error) {
+      setError(error.message ?? "No se pudo crear la cuenta");
       return;
     }
 
-    const timeout = setTimeout(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
+    // Requiere verificar el correo: mostramos "revisa tu correo".
+    // Al confirmar el link, BA loguea (autoSignInAfterVerification) y va al callbackURL.
+    router.push("/confirm-email");
+  }
 
-    return () => clearTimeout(timeout);
-  }, [state, countdown, router]);
-
-  if (state.status === "success")
-    return (
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl text-center">
-          <div className="mb-4 flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-              <svg
-                className="h-7 w-7 text-green-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-          </div>
-          <h2 className="text-xl font-bold text-gray-900">Revisa tu correo</h2>
-          <p className="mt-2 text-sm text-gray-500">
-            Te enviamos un enlace de confirmación a tu correo electrónico. Haz
-            click en el enlace para activar tu cuenta.
-          </p>
-          <p className="mt-4 text-sm text-gray-400">
-            Serás redirigido a{" "}
-            <Link
-              href="/login"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              iniciar sesión
-            </Link>{" "}
-            en {countdown} segundos.
-          </p>
-        </div>
-      </div>
-    );
   return (
     <div className="w-full max-w-md">
       <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl">
@@ -81,7 +49,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <form className="flex flex-col gap-4" action={register}>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <label
@@ -99,11 +67,6 @@ export default function RegisterPage() {
                 placeholder="Ana"
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
-              {state.status === "error" && !!state.fieldErrors && (
-                <p className="text-xs text-red-500">
-                  {state.fieldErrors.name?.errors}
-                </p>
-              )}
             </div>
             <div className="flex flex-col gap-1.5">
               <label
@@ -116,15 +79,11 @@ export default function RegisterPage() {
                 id="lastName"
                 name="lastName"
                 type="text"
+                required
                 autoComplete="family-name"
                 placeholder="García"
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
-              {state.status === "error" && !!state.fieldErrors && (
-                <p className="text-xs text-red-500">
-                  {state.fieldErrors.lastName?.errors}
-                </p>
-              )}
             </div>
           </div>
 
@@ -144,11 +103,6 @@ export default function RegisterPage() {
               placeholder="ana@consultorio.com"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
-            {state.status === "error" && !!state.fieldErrors && (
-              <p className="text-xs text-red-500">
-                {state.fieldErrors.email?.errors}
-              </p>
-            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -164,11 +118,6 @@ export default function RegisterPage() {
               required
               placeholder="999 888 777"
             />
-            {state.status === "error" && !!state.fieldErrors && (
-              <p className="text-xs text-red-500">
-                {state.fieldErrors.phone?.errors}
-              </p>
-            )}
           </div>
           <div className="flex flex-col gap-1.5">
             <label
@@ -186,16 +135,21 @@ export default function RegisterPage() {
               placeholder="Mínimo 8 caracteres"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
-            {state.status === "error" && !!state.fieldErrors && (
-              <p className="text-xs text-red-500">
-                {state.fieldErrors.password?.errors}
-              </p>
-            )}
           </div>
 
-          <Button type="submit" className="mt-2 w-full">
-            {isPending ? "Creando cuenta" : "Crear cuenta"}
-          </Button>
+          {error && (
+            <p className="text-sm text-red-500" role="alert">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={pending}
+            className="mt-2 w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+          >
+            {pending ? "Creando..." : "Crear cuenta"}
+          </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-500">

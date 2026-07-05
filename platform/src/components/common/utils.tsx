@@ -45,7 +45,7 @@ const clinicNavLinks: NavLink[] = [
 ];
 
 const orgNavLinks: NavLink[] = [
-  { href: "users", label: "Usuarios", icon: UserRound },
+  // { href: "users", label: "Usuarios", icon: UserRound },
   { href: "clinics", label: "Clínicas", icon: Building2Icon },
 ];
 

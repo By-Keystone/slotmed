@@ -3,18 +3,22 @@ import { TopHeader } from "@/components/clinic/top-header";
 import { clinicApi } from "@/lib/api/clinic";
 
 interface Props {
-  params: Promise<{ resourceId: string }>;
+  params: Promise<{ accountId: string; resourceId: string }>;
 }
 
 export default async function ClinicsPage({ params }: Props) {
-  const { resourceId } = await params;
+  const { accountId, resourceId } = await params;
 
   const clinics = await clinicApi.getOrganizationClinics(resourceId);
 
   return (
     <div>
       <TopHeader />
-      <ClinicsTable clinics={clinics} />
+      <ClinicsTable
+        clinics={clinics}
+        accountId={accountId}
+        organizationId={resourceId}
+      />
     </div>
   );
 }
