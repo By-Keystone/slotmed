@@ -1,7 +1,8 @@
 export interface Doctor {
   id: string;
   userId: string;
-  specialty: string;
+  clinicId: string;
+  specialty?: string;
   createdAt: Date;
   updatedAt: Date;
 }

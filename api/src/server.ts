@@ -13,7 +13,6 @@ import { PrismaUserRepository } from "./infrastructure/postgres/repositories/use
 import { SESEmailService } from "./infrastructure/services/email-service/ses.service";
 import { ClinicRepository } from "./infrastructure/postgres/repositories/clinic.repository";
 import clinicRoutes from "./routes/clinic/index";
-import { DoctorRepository } from "./infrastructure/postgres/repositories/doctor.repository";
 import { OrganizationRepository } from "./infrastructure/postgres/repositories/organization.repository";
 import organizationRoutes from "./routes/organization/index";
 import userRoutes from "./routes/user/index";
@@ -52,7 +51,6 @@ async function start() {
   });
 
   const clinicRepository = new ClinicRepository();
-  const doctorRepository = new DoctorRepository();
   const organizationRepository = new OrganizationRepository();
   const accountRepository = new AccountRepository();
   const subscriptionRepository = new SubscriptionRepository();
@@ -113,7 +111,6 @@ async function start() {
   await fastify.register(userRoutes, {
     prefix: "/user",
     userRepository,
-    doctorRepository,
     transactionManager,
     emailService
   });

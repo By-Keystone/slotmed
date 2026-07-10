@@ -19,7 +19,7 @@ model User {
   updatedAt           DateTime @updatedAt @map("updated_at")
   accountId           String?  @map("account_id") @db.Uuid
 
-  doctor              Doctor?
+  doctor              Doctor[]
   resourcesCreated    Resource[]
   resourceMemberships UserResourceMembership[] @relation(name: "user_membership")
   membershipsCreated  UserResourceMembership[] @relation(name: "memberships_created")
@@ -71,6 +71,7 @@ model Clinic {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   resource Resource @relation(fields: [resourceId], references: [id])
+  doctors  Doctor[]
 
   @@map("clinic")
 }
@@ -96,15 +97,19 @@ model UserResourceMembership {
 
 model Doctor {
   id        String   @id @default(uuid(7)) @db.Uuid
-  userId    String   @unique @map("user_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  clinicId  String   @map("resource_id") @db.Uuid
   specialty String?
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clinic    Clinic   @relation(fields: [clinicId], references: [resourceId], onDelete: NoAction)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // appointments Appointment[]
   // schedules    DoctorSchedule[]
+  doctorSchedules DoctorSchedule[]
 
+  @@unique([userId, clinicId])
   @@map("doctor")
 }
 
@@ -147,16 +152,17 @@ model UserInvitation {
   @@map("user_invitation")
 }
 
-// model DoctorSchedule {
-//   id        String @id @default(uuid(7)) @db.Uuid
-//   doctorId  String @map("doctor_id")
-//   dayOfWeek Int    @map("day_of_week") // 0=Sunday, 6=Saturday
-//   startTime String @map("start_time") // "09:00"
-//   endTime   String @map("end_time") // "17:00"
-//   doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+model DoctorSchedule {
+  id        String @id @default(uuid(7)) @db.Uuid
+  doctorId  String @map("doctor_id") @db.Uuid
+  dayOfWeek Int    @map("day_of_week") // 0=Sunday, 6=Saturday
+  startTime String @map("start_time") // "09:00"
+  endTime   String @map("end_time") // "17:00"
 
-//   @@map("doctor_schedule")
-// }
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@map("doctor_schedule")
+}
 
 // model Appointment {
 //   id           String            @id @default(uuid(7)) @db.Uuid

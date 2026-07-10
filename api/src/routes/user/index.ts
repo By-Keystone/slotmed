@@ -4,7 +4,6 @@ import {
   inviteUserSchema,
   InviteUserUseCase,
 } from "@/application/use-cases/user/invite-user.usecase";
-import { IDoctorRepository } from "@/domain/repositories/doctor.repository";
 import { IUserRepository } from "@/domain/repositories/user.repository";
 import { ITransactionManager } from "@/domain/services/transaction-manager";
 import { GetUserMembership } from "@/infrastructure/postgres/queries/membership/get-user-membership.query";
@@ -14,7 +13,6 @@ import { FastifyInstance } from "fastify";
 
 interface UserRoutesOptions {
   userRepository: IUserRepository;
-  doctorRepository: IDoctorRepository;
   transactionManager: ITransactionManager;
   emailService: IEmailService;
 }
@@ -22,8 +20,7 @@ export default async function userRoutes(
   fastify: FastifyInstance,
   opts: UserRoutesOptions,
 ) {
-  const { doctorRepository, userRepository, transactionManager, emailService } =
-    opts;
+  const { userRepository, transactionManager, emailService } = opts;
 
   fastify.addHook("preHandler", fastify.authenticate);
   fastify.addHook("preHandler", fastify.authorize);
@@ -65,15 +62,12 @@ export default async function userRoutes(
         return reply.status(404).send({ message: "User not found" });
       }
 
-      const doctor = await doctorRepository.getByUserId(user.id);
-
       return reply.send({
         id: user.id,
         email: user.email,
         name: user.name,
         lastName: user.lastName,
         confirmed: user.confirmed,
-        isDoctor: !!doctor,
         onboardingCompleted: user.onboardingCompleted,
         accountId: request.user.accountId,
         role: request.user.role,
