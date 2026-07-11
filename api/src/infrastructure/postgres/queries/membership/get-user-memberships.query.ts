@@ -3,15 +3,16 @@ import {
   IUserMembershipsQuery,
   OrganizationGroup,
 } from "@/application/queries/membership/get-user-memberships.query";
-import { UserRole } from "@/domain/enums/user-role";
+import { MembershipRole } from "@/domain/enums/membership-role";
 import { getClient } from "../../transaction-context";
 
-const ROLE_RANK: Record<UserRole, number> = {
+const ROLE_RANK: Record<MembershipRole, number> = {
   ADMIN: 100,
+  DOCTOR: 50,
   USER: 10,
 };
 
-function maxRole(a: UserRole, b: UserRole): UserRole {
+function maxRole(a: MembershipRole, b: MembershipRole): MembershipRole {
   return ROLE_RANK[a] >= ROLE_RANK[b] ? a : b;
 }
 
@@ -42,7 +43,7 @@ export class UserMembershipsQuery implements IUserMembershipsQuery {
     for (const m of memberships) {
       if (m.resource.type !== "ORGANIZATION") continue;
       const org = m.resource.organization!;
-      const role = m.role as UserRole;
+      const role = m.role as MembershipRole;
 
       groups.set(org.resourceId, {
         organization: { resourceId: org.resourceId, name: org.name },
@@ -70,7 +71,7 @@ export class UserMembershipsQuery implements IUserMembershipsQuery {
       const parentOrg = m.resource.parent?.organization;
       if (!parentOrg) continue;
       const orgId = parentOrg.resourceId;
-      const directRole = m.role as UserRole;
+      const directRole = m.role as MembershipRole;
 
       let group = groups.get(orgId);
 

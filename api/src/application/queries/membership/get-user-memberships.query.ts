@@ -1,4 +1,4 @@
-import { UserRole } from "@/domain/enums/user-role";
+import { MembershipRole } from "@/domain/enums/membership-role";
 import { z } from "zod";
 
 export const getUserMembershipsSchema = z.object({
@@ -10,7 +10,7 @@ export type UserMembershipsDTO = z.infer<typeof getUserMembershipsSchema>;
 export type ClinicAccess = {
   resourceId: string;
   name: string;
-  role: UserRole;
+  role: MembershipRole;
   accessVia: "DIRECT" | "INHERITED_FROM_ORG";
   membershipId?: string;
   joinedAt?: Date;
@@ -24,7 +24,7 @@ export type OrganizationGroup = {
   accountId: string | null;
   membership: {
     membershipId: string;
-    role: UserRole;
+    role: MembershipRole;
     joinedAt: Date;
   } | null;
   clinics: ClinicAccess[];

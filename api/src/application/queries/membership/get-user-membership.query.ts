@@ -5,7 +5,7 @@ export interface OrganizationMembership {
   resourceId: string;
   resourceName: string;
   resourceType: "ORGANIZATION";
-  role: "ADMIN" | "USER";
+  role: "ADMIN" | "DOCTOR" | "USER";
 }
 
 export interface ClinicMembership {
@@ -17,7 +17,7 @@ export interface ClinicMembership {
     resourceId: string;
     name: string;
   };
-  role: "ADMIN" | "USER";
+  role: "ADMIN" | "DOCTOR" | "USER";
   accessVia: "DIRECT" | "INHERITED_FROM_ORG";
 }
 

@@ -3,15 +3,16 @@ import {
   IGetUserMembership,
   UserMembership,
 } from "@/application/queries/membership/get-user-membership.query";
-import { UserRole } from "@/domain/enums/user-role";
+import { MembershipRole } from "@/domain/enums/membership-role";
 import { getClient } from "../../transaction-context";
 
-const ROLE_RANK: Record<UserRole, number> = {
+const ROLE_RANK: Record<MembershipRole, number> = {
   ADMIN: 100,
+  DOCTOR: 50,
   USER: 10,
 };
 
-function maxRole(a: UserRole, b: UserRole): UserRole {
+function maxRole(a: MembershipRole, b: MembershipRole): MembershipRole {
   return ROLE_RANK[a] >= ROLE_RANK[b] ? a : b;
 }
 
@@ -40,7 +41,7 @@ export class GetUserMembership implements IGetUserMembership {
         resourceId,
         resourceName: org.name,
         resourceType: "ORGANIZATION",
-        role: direct.role as UserRole,
+        role: direct.role as MembershipRole,
       };
     }
 
@@ -66,10 +67,10 @@ export class GetUserMembership implements IGetUserMembership {
 
     if (!direct && !inherited) return;
 
-    const directRole = direct ? (direct.role as UserRole) : null;
-    const inheritedRole = inherited ? (inherited.role as UserRole) : null;
+    const directRole = direct ? (direct.role as MembershipRole) : null;
+    const inheritedRole = inherited ? (inherited.role as MembershipRole) : null;
 
-    let role: UserRole;
+    let role: MembershipRole;
     let accessVia: "DIRECT" | "INHERITED_FROM_ORG";
     let membershipId: string | null;
 

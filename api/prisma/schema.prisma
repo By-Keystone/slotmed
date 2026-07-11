@@ -259,6 +259,7 @@ enum InvitationStatus {
 }
 
 enum MembershipRole {
+  ADMIN
   DOCTOR
   USER
 }
