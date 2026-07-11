@@ -56,8 +56,9 @@ model Organization {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  resource  Resource @relation(fields: [resourceId], references: [id])
-  accountId String?  @db.Uuid
+  resource    Resource    @relation(fields: [resourceId], references: [id])
+  accountId   String?     @db.Uuid
+  specialties Specialty[]
 
   @@map("organization")
 }
@@ -99,13 +100,13 @@ model DoctorProfile {
   id        String   @id @default(uuid(7)) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   clinicId  String   @map("resource_id") @db.Uuid
-  specialty String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   clinic    Clinic   @relation(fields: [clinicId], references: [resourceId], onDelete: NoAction)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   availabilities Availability[]
+  specialties    Specialty[]
 
   @@unique([userId, clinicId])
   @@map("doctor_profile")
@@ -160,6 +161,17 @@ model Availability {
   doctorProfile DoctorProfile @relation(fields: [doctorProfileId], references: [id], onDelete: NoAction)
 
   @@map("doctor_schedule")
+}
+
+model Specialty {
+  id             String @id @default(uuid(7)) @db.Uuid
+  name           String
+  organizationId String @map("organization_id") @db.Uuid
+
+  organization   Organization    @relation(fields: [organizationId], references: [resourceId], onDelete: NoAction)
+  doctorProfiles DoctorProfile[]
+
+  @@map("specialty")
 }
 
 // model Appointment {
