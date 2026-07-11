@@ -6,8 +6,6 @@ type Props = {
 };
 
 export function MembershipsList({ memberships }: Props) {
-  console.log(JSON.stringify(memberships, null, 3));
-
   if (memberships.length === 0) {
     return (
       <div className="flex items-center justify-center">

@@ -17,7 +17,8 @@ export enum DocumentType {
   DNI = "DNI",
 }
 
-export enum UserType {
+export enum MembershipRole {
+  ADMIN = "ADMIN",
   DOCTOR = "DOCTOR",
   USER = "USER",
 }

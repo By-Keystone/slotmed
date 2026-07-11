@@ -1,4 +1,4 @@
-import { UserRole } from "@/lib/utils";
+import { MembershipRole } from "@/lib/utils";
 import { StatisticsWrapper } from "@/components/app/dashboard/stats-wrapper";
 import { useApp } from "@/context/app/app.context";
 import { OrganizationStats } from "@/components/app/dashboard/organization/stats";
@@ -17,7 +17,7 @@ export default async function DashboardPage({ params }: PageProps) {
   return (
     <div>
       <StatisticsWrapper>
-        {membership.role === UserRole.ADMIN && (
+        {membership.role === MembershipRole.ADMIN && (
           <OrganizationStats resourceId={membership.resourceId} />
         )}
       </StatisticsWrapper>

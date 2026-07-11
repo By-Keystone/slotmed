@@ -1,5 +1,17 @@
+import { NotFound } from "@/application/errors/not-found.error";
 import { getClinicDoctorsSchema } from "@/application/queries/clinic/get-clinic-doctors.query";
 import { getClinicUsersSchema } from "@/application/queries/clinic/get-clinic-users.query";
+import {
+  GetDoctorAvailabilityDto,
+  getDoctorAvailabilityParamsSchema,
+  GetDoctorAvailabilityUseCase,
+} from "@/application/use-cases/availability/get-doctor-availability.usecase";
+import {
+  insertAvailabilityBodySchema,
+  InsertAvailabilityDto,
+  insertAvailabilityParamsSchema,
+  InsertAvailabilityUseCase,
+} from "@/application/use-cases/availability/insert-availability.usecase";
 import {
   CreateClinicDto,
   createClinicSchema,
@@ -10,6 +22,7 @@ import { IClinicRepository } from "@/domain/repositories/clinic.repository";
 import { GetClinicUsersQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-users.query";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
+import { request } from "http";
 
 export interface ClinicRoutesOptions {
   clinicRepository: IClinicRepository;
@@ -86,6 +99,65 @@ export default async function clinicRoutes(
           "Error ocurred when getting clinic users",
         );
       }
+    },
+  );
+
+  app.get(
+    "/clinic/:clinicId/availability",
+    { schema: { params: getDoctorAvailabilityParamsSchema } },
+    async (request, reply) => {
+      try {
+        const useCase = new GetDoctorAvailabilityUseCase();
+
+        const dto: GetDoctorAvailabilityDto = {
+          clinicId: request.params.clinicId,
+          userId: request.user.userId,
+        };
+
+        const result = await useCase.execute(dto);
+
+        return reply.status(200).send(result);
+      } catch (error) {
+        console.error("Error getting availabilities for doctor:", error);
+
+        if (error instanceof NotFound) {
+          return reply
+            .status(error.statusCode)
+            .send({ message: error.message, code: error.code });
+        }
+
+        return reply.status(500).send({
+          message: "Error getting availabilities for doctor",
+          code: "INTERNAL_ERROR",
+        });
+      }
+    },
+  );
+
+  app.put(
+    "/clinic/:clinicId/availability",
+    {
+      schema: {
+        params: insertAvailabilityParamsSchema,
+        body: insertAvailabilityBodySchema,
+      },
+    },
+    async (request, reply) => {
+      try {
+        const usecase = new InsertAvailabilityUseCase();
+
+        const dto: InsertAvailabilityDto = {
+          clinicId: request.params.clinicId,
+          userId: request.user.userId,
+          availabilities: request.body.availabilities,
+        };
+
+        await usecase.execute(dto);
+
+        return reply
+          .status(201)
+          .send({ message: "Availabilities created successfully" });
+      } catch (error) {}
     },
   );
 }

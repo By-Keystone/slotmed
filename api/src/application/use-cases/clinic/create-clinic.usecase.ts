@@ -2,7 +2,7 @@ import { IClinicRepository } from "@/domain/repositories/clinic.repository";
 import z from "zod";
 
 export const createClinicSchema = z.object({
-  name: z.string("Name is required"),
+  name: z.string("Name  s required"),
   phone: z.string(),
   address: z.string(),
   organizationId: z.string(),

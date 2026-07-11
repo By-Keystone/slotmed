@@ -1,12 +1,12 @@
 import { doFetch } from "@/lib/api/fetch";
-import { UserRole } from "@/lib/utils";
+import { MembershipRole } from "@/lib/utils";
 import { NoMembershipError } from "../errors";
 import { UserMembership } from "./types";
 
 export type ClinicAccess = {
   resourceId: string;
   name: string;
-  role: UserRole;
+  role: MembershipRole;
   accessVia: "INHERITED_FROM_ORG" | "DIRECT";
   membershipId?: string;
   joinedAt?: Date;
@@ -19,7 +19,7 @@ export type Membership = {
   };
   membership: {
     membershipId: string;
-    role: UserRole;
+    role: MembershipRole;
     joinedAt: Date;
   } | null;
   accountId: string | null;

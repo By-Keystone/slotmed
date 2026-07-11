@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/app/app.context";
-import { UserRole } from "@/lib/utils";
+import { MembershipRole } from "@/lib/utils";
 import { useState } from "react";
 
 export const TopNav = () => {
@@ -15,7 +15,7 @@ export const TopNav = () => {
     <div className="flex justify-between items-center">
       <h2>Lista de doctores</h2>
       {membership.resourceType === "ORGANIZATION" &&
-        membership.role === UserRole.ADMIN && (
+        membership.role === MembershipRole.ADMIN && (
           <Button onClick={() => setIsCreateDoctorModalOpen(true)}>
             Invitar nuevo doctor
           </Button>

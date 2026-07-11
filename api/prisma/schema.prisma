@@ -77,19 +77,20 @@ model Clinic {
 }
 
 model UserResourceMembership {
-  id            String          @id @default(uuid(7)) @db.Uuid
-  userId        String          @map("user_id") @db.Uuid
-  resourceId    String          @map("resource_id") @db.Uuid
-  accountId     String          @map("account_id") @db.Uuid
-  createdAt     DateTime        @default(now()) @map("created_at")
-  createdBy     String          @map("created_by") @db.Uuid
-  role          MembershipRole  @default(USER) // Membership Role
-  account       Account         @relation(fields: [accountId], references: [id])
-  user          User            @relation(fields: [userId], references: [id], name: "user_membership")
-  resource      Resource        @relation(fields: [resourceId], references: [id])
-  createdByUser User            @relation(fields: [createdBy], references: [id], name: "memberships_created")
-  invitation    UserInvitation?
-  deletedAt     DateTime?       @map("deleted_at")
+  id                   String          @id @default(uuid(7)) @db.Uuid
+  userId               String          @map("user_id") @db.Uuid
+  resourceId           String          @map("resource_id") @db.Uuid
+  accountId            String          @map("account_id") @db.Uuid
+  createdAt            DateTime        @default(now()) @map("created_at")
+  createdBy            String          @map("created_by") @db.Uuid
+  role                 MembershipRole  @default(USER) // Membership Role
+  account              Account         @relation(fields: [accountId], references: [id])
+  user                 User            @relation(fields: [userId], references: [id], name: "user_membership")
+  resource             Resource        @relation(fields: [resourceId], references: [id])
+  createdByUser        User            @relation(fields: [createdBy], references: [id], name: "memberships_created")
+  invitation           UserInvitation?
+  deletedAt            DateTime?       @map("deleted_at")
+  doctorAvailabilities Availability[]
 
   @@unique([userId, resourceId])
   @@map("user_resource_membership")
@@ -104,10 +105,6 @@ model Doctor {
   clinic    Clinic   @relation(fields: [clinicId], references: [resourceId], onDelete: NoAction)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  // appointments Appointment[]
-  // schedules    DoctorSchedule[]
-  doctorSchedules DoctorSchedule[]
 
   @@unique([userId, clinicId])
   @@map("doctor")
@@ -152,14 +149,14 @@ model UserInvitation {
   @@map("user_invitation")
 }
 
-model DoctorSchedule {
-  id        String @id @default(uuid(7)) @db.Uuid
-  doctorId  String @map("doctor_id") @db.Uuid
-  dayOfWeek Int    @map("day_of_week") // 0=Sunday, 6=Saturday
-  startTime String @map("start_time") // "09:00"
-  endTime   String @map("end_time") // "17:00"
+model Availability {
+  id           String @id @default(uuid(7)) @db.Uuid
+  membershipId String @map("membership_id") @db.Uuid
+  dayOfWeek    Int    @map("day_of_week") // 0=Sunday, 6=Saturday
+  startTime    String @map("start_time") // "09:00"
+  endTime      String @map("end_time") // "17:00"
 
-  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  membership UserResourceMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
 
   @@map("doctor_schedule")
 }
