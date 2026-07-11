@@ -56,6 +56,15 @@ export class InviteUserUseCase {
         throw new NotFound("Resource not found");
       }
 
+      if (data.role === "DOCTOR")
+        await client.doctorProfile.create({
+          data: {
+            userId: user.id,
+            clinicId: resource.resourceId,
+            specialty: ''
+          },
+        });
+
       const membership = await client.userResourceMembership.create({
         data: {
           role: data.role,

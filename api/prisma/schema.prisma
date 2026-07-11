@@ -19,7 +19,7 @@ model User {
   updatedAt           DateTime @updatedAt @map("updated_at")
   accountId           String?  @map("account_id") @db.Uuid
 
-  doctor              Doctor[]
+  doctorProfile       DoctorProfile[]
   resourcesCreated    Resource[]
   resourceMemberships UserResourceMembership[] @relation(name: "user_membership")
   membershipsCreated  UserResourceMembership[] @relation(name: "memberships_created")
@@ -70,44 +70,45 @@ model Clinic {
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  resource Resource @relation(fields: [resourceId], references: [id])
-  doctors  Doctor[]
+  resource Resource        @relation(fields: [resourceId], references: [id])
+  doctors  DoctorProfile[]
 
   @@map("clinic")
 }
 
 model UserResourceMembership {
-  id                   String          @id @default(uuid(7)) @db.Uuid
-  userId               String          @map("user_id") @db.Uuid
-  resourceId           String          @map("resource_id") @db.Uuid
-  accountId            String          @map("account_id") @db.Uuid
-  createdAt            DateTime        @default(now()) @map("created_at")
-  createdBy            String          @map("created_by") @db.Uuid
-  role                 MembershipRole  @default(USER) // Membership Role
-  account              Account         @relation(fields: [accountId], references: [id])
-  user                 User            @relation(fields: [userId], references: [id], name: "user_membership")
-  resource             Resource        @relation(fields: [resourceId], references: [id])
-  createdByUser        User            @relation(fields: [createdBy], references: [id], name: "memberships_created")
-  invitation           UserInvitation?
-  deletedAt            DateTime?       @map("deleted_at")
-  doctorAvailabilities Availability[]
+  id            String          @id @default(uuid(7)) @db.Uuid
+  userId        String          @map("user_id") @db.Uuid
+  resourceId    String          @map("resource_id") @db.Uuid
+  accountId     String          @map("account_id") @db.Uuid
+  createdAt     DateTime        @default(now()) @map("created_at")
+  createdBy     String          @map("created_by") @db.Uuid
+  role          MembershipRole  @default(USER) // Membership Role
+  account       Account         @relation(fields: [accountId], references: [id])
+  user          User            @relation(fields: [userId], references: [id], name: "user_membership")
+  resource      Resource        @relation(fields: [resourceId], references: [id])
+  createdByUser User            @relation(fields: [createdBy], references: [id], name: "memberships_created")
+  invitation    UserInvitation?
+  deletedAt     DateTime?       @map("deleted_at")
 
   @@unique([userId, resourceId])
   @@map("user_resource_membership")
 }
 
-model Doctor {
+model DoctorProfile {
   id        String   @id @default(uuid(7)) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   clinicId  String   @map("resource_id") @db.Uuid
-  specialty String?
+  specialty String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   clinic    Clinic   @relation(fields: [clinicId], references: [resourceId], onDelete: NoAction)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  availabilities Availability[]
+
   @@unique([userId, clinicId])
-  @@map("doctor")
+  @@map("doctor_profile")
 }
 
 model Subscription {
@@ -150,13 +151,13 @@ model UserInvitation {
 }
 
 model Availability {
-  id           String @id @default(uuid(7)) @db.Uuid
-  membershipId String @map("membership_id") @db.Uuid
-  dayOfWeek    Int    @map("day_of_week") // 0=Sunday, 6=Saturday
-  startTime    String @map("start_time") // "09:00"
-  endTime      String @map("end_time") // "17:00"
+  id              String @id @default(uuid(7)) @db.Uuid
+  doctorProfileId String @map("doctor_profile_id") @db.Uuid
+  dayOfWeek       Int    @map("day_of_week") // 0=Sunday, 6=Saturday
+  startTime       String @map("start_time") // "09:00"
+  endTime         String @map("end_time") // "17:00"
 
-  membership UserResourceMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  doctorProfile DoctorProfile @relation(fields: [doctorProfileId], references: [id], onDelete: NoAction)
 
   @@map("doctor_schedule")
 }

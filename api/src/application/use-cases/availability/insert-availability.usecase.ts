@@ -35,26 +35,27 @@ export class InsertAvailabilityUseCase {
     await inTransaction(async () => {
       const client = getClient();
 
-      const membership = await client.userResourceMembership.findUnique({
+      const doctorProfile = await client.doctorProfile.findUnique({
         where: {
-          userId_resourceId: {
+          userId_clinicId: {
             userId: dto.userId,
-            resourceId: dto.clinicId,
+            clinicId: dto.clinicId,
           },
         },
       });
 
-      if (!membership) throw new NotFound("User is not a doctor on the clinic");
+      if (!doctorProfile)
+        throw new NotFound("User is not a doctor on the clinic");
 
       await client.availability.deleteMany({
         where: {
-          membershipId: membership.id,
+          doctorProfileId: doctorProfile.id,
         },
       });
 
       await client.availability.createMany({
         data: dto.availabilities.map((availability) => ({
-          membershipId: membership.id,
+          doctorProfileId: doctorProfile.id,
           ...availability,
         })),
       });

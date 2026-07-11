@@ -16,18 +16,18 @@ export class GetDoctorAvailabilityUseCase {
   async execute(dto: GetDoctorAvailabilityDto) {
     const client = getClient();
 
-    const membership = await client.userResourceMembership.findUnique({
+    const doctorProfile = await client.doctorProfile.findUnique({
       where: {
-        userId_resourceId: { resourceId: dto.clinicId, userId: dto.userId },
-        role: "DOCTOR",
+        userId_clinicId: { clinicId: dto.clinicId, userId: dto.userId },
       },
     });
 
-    if (!membership) throw new NotFound("User is not a doctor on this clinic");
+    if (!doctorProfile)
+      throw new NotFound("User is not a doctor on this clinic");
 
     const availabilities = await client.availability.findMany({
       where: {
-        membershipId: membership.id,
+        doctorProfileId: doctorProfile.id,
       },
     });
 
