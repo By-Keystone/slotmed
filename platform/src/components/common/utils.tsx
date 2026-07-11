@@ -1,4 +1,4 @@
-import { UserRole } from "@/lib/utils";
+import { MembershipRole } from "@/lib/utils";
 import {
   Building2,
   Building2Icon,
@@ -16,7 +16,7 @@ type NavLink = {
   icon: ForwardRefExoticComponent<
     Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
   >;
-  roles?: UserRole[];
+  roles?: MembershipRole[];
 };
 
 const clinicNavLinks: NavLink[] = [
@@ -34,13 +34,13 @@ const clinicNavLinks: NavLink[] = [
     href: "doctors",
     label: "Doctores",
     icon: UserRound,
-    roles: [UserRole.ADMIN],
+    roles: [MembershipRole.ADMIN],
   },
   {
     href: "profile",
     label: "Configuración",
     icon: Settings,
-    roles: [UserRole.USER],
+    roles: [MembershipRole.DOCTOR, MembershipRole.USER],
   },
 ];
 
@@ -53,7 +53,7 @@ export function getNavLinks({
   role,
   resourceType,
 }: {
-  role: UserRole;
+  role: MembershipRole;
   resourceType: "ORGANIZATION" | "CLINIC";
 }): NavLink[] {
   const base = resourceType === "ORGANIZATION" ? orgNavLinks : clinicNavLinks;

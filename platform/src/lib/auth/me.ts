@@ -10,7 +10,6 @@ export interface Me {
   lastName: string;
   role: string;
   confirmed: boolean;
-  isDoctor: boolean;
   onboardingCompleted: boolean;
   accountId: string | null;
 }
