@@ -61,7 +61,6 @@ export class InviteUserUseCase {
           data: {
             userId: user.id,
             clinicId: resource.resourceId,
-            specialty: ''
           },
         });
 
