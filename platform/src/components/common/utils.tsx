@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LucideProps,
   Settings,
+  Tags,
   UserRound,
 } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
@@ -47,6 +48,7 @@ const clinicNavLinks: NavLink[] = [
 const orgNavLinks: NavLink[] = [
   // { href: "users", label: "Usuarios", icon: UserRound },
   { href: "clinics", label: "Clínicas", icon: Building2Icon },
+  { href: "specialties", label: "Especialidades", icon: Tags },
 ];
 
 export function getNavLinks({
