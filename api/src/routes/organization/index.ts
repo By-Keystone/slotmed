@@ -1,4 +1,5 @@
 import { ApplicationError } from "@/application/errors/application.errors";
+import { UnprocessableEntity } from "@/application/errors/unprocessable-entity.errors";
 import { getOrganizationClinicsSchema } from "@/application/queries/organization/get-organization-clinics.query";
 import { getOrganizationsClinicCountSchema } from "@/application/queries/organization/get-organizations-clinic-count.query";
 import {
@@ -6,6 +7,13 @@ import {
   createOrganizationSchema,
   CreateOrganizationUseCase,
 } from "@/application/use-cases/organization/create-organization.use-case";
+import {
+  createSpecialtyBodySchema,
+  createSpecialtyParamsSchema,
+  CreateSpecialtyUseCase,
+} from "@/application/use-cases/specialty/create-specialty.usecase";
+import { GetSpecialtiesDto, getSpecialtiesParamSchema, GetSpecialtiesUseCase } from "@/application/use-cases/specialty/get-specialties.usecase";
+import { updateSpecialtyBodySchema, UpdateSpecialtyDto, updateSpecialtyParamsSchema, UpdateSpecialtyUseCase } from "@/application/use-cases/specialty/update-specialty.usecase";
 import { IOrganizationRepository } from "@/domain/repositories/organization.repository";
 import { IUserRepository } from "@/domain/repositories/user.repository";
 import { GetOrganizationClinicsQuery } from "@/infrastructure/postgres/queries/organization/get-organization-clinics.query";
@@ -119,4 +127,79 @@ export default async function organizationRoutes(
       }
     },
   );
+
+  app.post(
+    "/:organizationId/specialty",
+    {
+      schema: {
+        body: createSpecialtyBodySchema,
+        params: createSpecialtyParamsSchema,
+      },
+    },
+    async (request, reply) => {
+      try {
+        const usecase = new CreateSpecialtyUseCase();
+
+        await usecase.execute({
+          name: request.body.name,
+          organizationId: request.params.organizationId,
+        });
+
+        return reply
+          .status(201)
+          .send({ message: "Especialidad creada satisfactoriamente" });
+      } catch (error) {
+        if (error instanceof UnprocessableEntity)
+          return reply
+            .status(422)
+            .send({ message: error.message, code: error.code });
+
+        console.error("Ocurrió un error creando especialidad:", error);
+
+        return reply
+          .status(500)
+          .send({ message: "Error creando especialidad" });
+      }
+    },
+  );
+
+  app.get("/:organizationId/specialties", { schema: { params: getSpecialtiesParamSchema } }, async (request, reply) => {
+    try {
+      const usecase = new GetSpecialtiesUseCase();
+
+      const dto: GetSpecialtiesDto = {
+        organizationId: request.params.organizationId
+      };
+
+      const specialties = await usecase.execute(dto);
+
+      return reply.status(200).send({ specialties });
+    } catch (error) {
+      console.error("An error occurred while getting specialties: ", error);
+
+      return reply.status(500).send({ message: "Ocurrió un error al obtener especialidades" })
+    }
+  })
+
+  app.put("/:organizationId/specialty/:specialtyId", { schema: { params: updateSpecialtyParamsSchema, body: updateSpecialtyBodySchema } }, async (request, reply) => {
+    try {
+      const usecase = new UpdateSpecialtyUseCase();
+
+      const dto: UpdateSpecialtyDto = {
+        specialtyId: request.params.specialtyId,
+        ...request.body
+      }
+
+      await usecase.execute(dto);
+
+      return reply.status(201).send({ message: "Especialidad actualizada satisfactoriamente" })
+    } catch (error) {
+      if (error instanceof ApplicationError)
+        return reply.status(error.statusCode).send({ message: error.message })
+
+      console.error("An error ocurred while updating specialty: ", error);
+
+      return reply.status(500).send({ message: "Ocurrió un problema al actualizar la especialidad" })
+    }
+  })
 }
