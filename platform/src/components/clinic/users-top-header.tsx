@@ -4,8 +4,13 @@ import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { Button } from "../ui/button";
 import { InviteUserModal } from "./invite-user/modal";
+import { Specialty } from "@/lib/api/specialty/types";
 
-export const UsersTopHeader = () => {
+interface Props {
+  specialties: Specialty[];
+}
+
+export const UsersTopHeader = ({ specialties }: Props) => {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   return (
@@ -18,6 +23,7 @@ export const UsersTopHeader = () => {
       <InviteUserModal
         isOpen={inviteModalOpen}
         setIsOpen={setInviteModalOpen}
+        specialties={specialties}
       />
     </div>
   );

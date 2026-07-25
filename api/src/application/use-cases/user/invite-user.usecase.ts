@@ -1,4 +1,5 @@
 import { NotFound } from "@/application/errors/not-found.error";
+import { UnprocessableEntity } from "@/application/errors/unprocessable-entity.errors";
 import { IEmailService } from "@/application/ports/email-service.port";
 import { ITransactionManager } from "@/domain/services/transaction-manager";
 import { getClient } from "@/infrastructure/postgres/transaction-context";
@@ -7,14 +8,20 @@ import { MembershipRole, UserRole } from "@prisma/client";
 import { randomBytes } from "node:crypto";
 import z from "zod";
 
-export const inviteUserSchema = z.object({
-  email: z.string("Email is required"),
-  name: z.string("Name is required"),
-  lastName: z.string("Lastname is required"),
-  phone: z.string("Phone is required"),
-  role: z.enum(MembershipRole, { error: "Membership role is required" }),
-  resourceId: z.string("Resource ID is required"),
-});
+export const inviteUserSchema = z
+  .object({
+    email: z.string("Email is required"),
+    name: z.string("Name is required"),
+    lastName: z.string("Lastname is required"),
+    phone: z.string("Phone is required"),
+    role: z.enum(MembershipRole, { error: "Membership role is required" }),
+    resourceId: z.string("Resource ID is required"),
+    specialtyIds: z.array(z.string()).optional(),
+  })
+  .refine((data) => data.role !== "DOCTOR" || !!data.specialtyIds?.length, {
+    message: "At least one specialty is required for a doctor",
+    path: ["specialtyIds"],
+  });
 
 export type InviteUserDto = z.infer<typeof inviteUserSchema> & {
   createdBy: string;
@@ -29,13 +36,20 @@ export class InviteUserUseCase {
   constructor(
     private readonly tx: ITransactionManager,
     private readonly services: InviteUserUseCaseService,
-  ) {}
+  ) { }
 
   async execute(data: InviteUserDto) {
     const result = await this.tx.runInTransaction(async () => {
       const client = getClient();
 
-      const user = await client.user.create({
+      let user = await client.user.findUnique({ where: { email: data.email } });
+
+      if (user && user.accountId !== data.accountId) {
+        console.log(`[invite-user]: A user with that email already exists in another account`)
+        throw new UnprocessableEntity("Ya existe una cuenta con este correo en otra cuenta");
+      }
+
+      if (!user) user = await client.user.create({
         data: {
           email: data.email,
           name: data.name,
@@ -44,6 +58,7 @@ export class InviteUserUseCase {
           accountId: data.accountId,
         },
       });
+
 
       const resource = await client.clinic.findFirst({
         where: { resourceId: data.resourceId },
@@ -61,6 +76,9 @@ export class InviteUserUseCase {
           data: {
             userId: user.id,
             clinicId: resource.resourceId,
+            specialties: {
+              connect: (data.specialtyIds ?? []).map((id) => ({ id })),
+            },
           },
         });
 
