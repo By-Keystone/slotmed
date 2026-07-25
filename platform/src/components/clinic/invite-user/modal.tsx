@@ -12,22 +12,35 @@ import {
 } from "@/components/ui/dialog";
 import { InviteUserForm } from "./form";
 import { inviteUserAction } from "@/lib/actions/user/invite-user.action";
+import { Specialty } from "@/lib/api/specialty/types";
 
 interface Props {
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
+  specialties: Specialty[];
 }
 
 const FORM_ID = "invite-user-form";
 
-export const InviteUserModal = ({ isOpen, setIsOpen }: Props) => {
+export const InviteUserModal = ({ isOpen, setIsOpen, specialties }: Props) => {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const { clinicId } = useParams<{ clinicId: string }>();
+  const { resourceId, clinicId } = useParams<{
+    resourceId: string;
+    clinicId: string;
+  }>();
 
   const submit = (formData: FormData) => {
+    setError(null);
+
+    const role = formData.get("role");
+    const specialtyIds = formData.getAll("specialtyIds");
+    if (role === "DOCTOR" && specialtyIds.length === 0) {
+      setError("Seleccioná al menos una especialidad");
+      return;
+    }
+
     startTransition(async () => {
-      setError(null);
       const result = await inviteUserAction(clinicId, { status: "idle" }, formData);
 
       if (result.status === "success") {
@@ -50,7 +63,12 @@ export const InviteUserModal = ({ isOpen, setIsOpen }: Props) => {
         <DialogHeader>
           <DialogTitle>Invitar usuario</DialogTitle>
         </DialogHeader>
-        <InviteUserForm formId={FORM_ID} action={submit} />
+        <InviteUserForm
+          formId={FORM_ID}
+          action={submit}
+          organizationId={resourceId}
+          specialties={specialties}
+        />
         {error && (
           <p className="mt-2 text-sm text-red-500" role="alert">
             {error}

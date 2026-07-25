@@ -6,13 +6,19 @@ import { getSession } from "@/lib/auth/session";
 import { revalidateTag } from "next/cache";
 import z, { treeifyError } from "zod";
 
-const inviteUserSchema = z.object({
-  name: z.string().min(1),
-  lastName: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().min(1),
-  role: z.enum(["DOCTOR", "USER"]),
-});
+const inviteUserSchema = z
+  .object({
+    name: z.string().min(1),
+    lastName: z.string().min(1),
+    email: z.string().email(),
+    phone: z.string().min(1),
+    role: z.enum(["DOCTOR", "USER"]),
+    specialtyIds: z.array(z.string()).optional(),
+  })
+  .refine((data) => data.role !== "DOCTOR" || !!data.specialtyIds?.length, {
+    message: "Seleccioná al menos una especialidad",
+    path: ["specialtyIds"],
+  });
 
 export type InviteUserState =
   | { status: "idle" }
@@ -43,6 +49,7 @@ export async function inviteUserAction(
     email: data.get("email"),
     phone: data.get("phone"),
     role: data.get("role"),
+    specialtyIds: data.getAll("specialtyIds"),
   });
 
   if (!parsed.success) {

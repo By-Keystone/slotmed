@@ -1,19 +1,23 @@
 import { clinicApi } from "@/lib/api/clinic";
+import { specialtyApi } from "@/lib/api/specialty";
 import { UsersTable } from "@/components/clinic/users-table";
 import { UsersTopHeader } from "@/components/clinic/users-top-header";
 
 interface Props {
-  params: Promise<{ clinicId: string }>;
+  params: Promise<{ resourceId: string; clinicId: string }>;
 }
 
 export default async function ClinicUsersPage({ params }: Props) {
-  const { clinicId } = await params;
+  const { resourceId, clinicId } = await params;
 
-  const users = await clinicApi.getClinicUsers(clinicId);
+  const [users, specialties] = await Promise.all([
+    clinicApi.getClinicUsers(clinicId),
+    specialtyApi.getOrganizationSpecialties(resourceId),
+  ]);
 
   return (
     <div>
-      <UsersTopHeader />
+      <UsersTopHeader specialties={specialties} />
       <UsersTable users={users} />
     </div>
   );
