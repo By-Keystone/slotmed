@@ -1,19 +1,20 @@
 import z from "zod";
 
-export const getClinicDoctorsSchema = z.object({
-  resourceId: z.string(),
+export const getClinicDoctorsParamsSchema = z.object({
+  clinicId: z.string(),
 });
 
-export type GetClinicDoctorsDto = z.infer<typeof getClinicDoctorsSchema>;
+export type GetClinicDoctorsDto = z.infer<typeof getClinicDoctorsParamsSchema>;
 
 export interface IGetClinicDoctorsQueryResult {
-  doctorId: string;
+  doctorProfileId: string;
+  specialties: {
+    id: string;
+    name: string
+  }[];
+  userId: string;
   name: string;
   lastName: string;
-  specialty?: string;
-  membershipRole: string;
-  confirmed: boolean;
-  phone: string;
 }
 
 export interface IGetClinicDoctorsQuery {

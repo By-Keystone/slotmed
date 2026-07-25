@@ -13,6 +13,7 @@ import { PrismaUserRepository } from "./infrastructure/postgres/repositories/use
 import { SESEmailService } from "./infrastructure/services/email-service/ses.service";
 import { ClinicRepository } from "./infrastructure/postgres/repositories/clinic.repository";
 import clinicRoutes from "./routes/clinic/index";
+import clinicPublicRoutes from "./routes/clinic/public";
 import { OrganizationRepository } from "./infrastructure/postgres/repositories/organization.repository";
 import organizationRoutes from "./routes/organization/index";
 import userRoutes from "./routes/user/index";
@@ -23,6 +24,7 @@ import { PostgresTransactionManager } from "./infrastructure/postgres/transactio
 import { fromNodeHeaders } from "better-auth/node";
 import auth from "./infrastructure/vendors/auth/better-auth/auth";
 import userInvitationRoutes from "./routes/user-invitation";
+import doctorProfileRoutes from "./routes/doctor-profile/index";
 
 const fastify = Fastify({
   logger:
@@ -103,6 +105,9 @@ async function start() {
   await fastify.register(clinicRoutes, {
     clinicRepository,
   });
+  // Hermano de clinicRoutes, no anidado dentro: así no puede heredar el
+  // requireAccount/authorize que clinicRoutes le agrega a su propio contexto.
+  await fastify.register(clinicPublicRoutes);
   await fastify.register(organizationRoutes, {
     organizationRepository,
     userRepository,
@@ -122,10 +127,14 @@ async function start() {
     transactionManager,
   });
 
-  await fastify.register(userInvitationRoutes, { 
+  await fastify.register(userInvitationRoutes, {
     prefix: '/invitations'
   });
-  
+
+  await fastify.register(doctorProfileRoutes, {
+    prefix: "/doctor-profile",
+  });
+
   fastify.get("/health", async () => ({ status: "ok" }));
 
   const port = Number(process.env.PORT) || 4000;

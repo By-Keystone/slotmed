@@ -109,6 +109,7 @@ model DoctorProfile {
   specialties    Specialty[]
 
   @@unique([userId, clinicId])
+  @@index([clinicId])
   @@map("doctor_profile")
 }
 
@@ -160,6 +161,7 @@ model Availability {
 
   doctorProfile DoctorProfile @relation(fields: [doctorProfileId], references: [id], onDelete: NoAction)
 
+  @@index([doctorProfileId])
   @@map("doctor_schedule")
 }
 
