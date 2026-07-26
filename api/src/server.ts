@@ -25,6 +25,7 @@ import { fromNodeHeaders } from "better-auth/node";
 import auth from "./infrastructure/vendors/auth/better-auth/auth";
 import userInvitationRoutes from "./routes/user-invitation";
 import doctorProfileRoutes from "./routes/doctor-profile/index";
+import appointmentRoutes from "./routes/appointment/index";
 
 const fastify = Fastify({
   logger:
@@ -133,6 +134,10 @@ async function start() {
 
   await fastify.register(doctorProfileRoutes, {
     prefix: "/doctor-profile",
+  });
+
+  await fastify.register(appointmentRoutes, {
+    prefix: "/appointment",
   });
 
   fastify.get("/health", async () => ({ status: "ok" }));
