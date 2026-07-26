@@ -17,6 +17,8 @@ const PUBLIC_PATH_PATTERNS = [
   // corre antes de que Next resuelva next.config.ts `rewrites()`, así que
   // sin este bypass el fetch anónimo queda redirigido a /login.
   /^\/api\/doctor-profile\//,
+  // Confirmar reserva (POST anónimo al crear la cita).
+  /^\/api\/appointment$/,
 ];
 
 function isPublicPath(pathname: string) {

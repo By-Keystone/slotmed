@@ -3,12 +3,14 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ClinicDoctor } from "@/lib/api/doctors/types";
+import { appointmentsApi } from "@/lib/api/appointments";
 import { StepperProgress } from "./steps/stepper-progress";
 import { SpecialtyStep } from "./steps/specialty-step";
 import { DoctorStep } from "./steps/doctor-step";
 import { DateTimeStep } from "./steps/datetime-step";
 import { PatientStep, BookingPatient } from "./steps/patient-step";
 import { SuccessStep } from "./steps/success-step";
+import { SLOT_DURATION_MINUTES } from "./lib/generate-slots";
 
 interface Specialty {
   id: string;
@@ -89,7 +91,20 @@ export function BookingWizard({ doctors }: Props) {
               doctorName={`Dr. ${doctor.name} ${doctor.lastName}`}
               date={dateTime.date}
               time={dateTime.time}
-              onNext={(p) => {
+              onNext={async (p) => {
+                await appointmentsApi.create({
+                  doctorProfileId: doctor.doctorProfileId,
+                  specialty: specialty.name,
+                  scheduledAt: new Date(
+                    `${dateTime.date}T${dateTime.time}:00`,
+                  ).toISOString(),
+                  durationMinutes: String(SLOT_DURATION_MINUTES),
+                  patientName: p.name,
+                  patientLastName: p.lastName,
+                  patientPhone: p.phone,
+                  patientEmail: p.email,
+                });
+
                 setPatient(p);
                 setStep(5);
               }}
