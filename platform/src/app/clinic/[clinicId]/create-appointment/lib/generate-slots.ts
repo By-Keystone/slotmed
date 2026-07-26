@@ -1,6 +1,6 @@
 import { DoctorAvailability } from "@/lib/api/doctor-profile/types";
 
-const SLOT_DURATION_MINUTES = 30;
+export const SLOT_DURATION_MINUTES = 30;
 
 /**
  * Genera los horarios reservables para una fecha a partir de la disponibilidad

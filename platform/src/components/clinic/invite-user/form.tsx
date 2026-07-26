@@ -39,8 +39,13 @@ export const InviteUserForm = ({
     });
   };
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    action(new FormData(e.currentTarget));
+  };
+
   return (
-    <form id={formId} action={action} className="flex flex-col gap-y-3">
+    <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-y-3">
       <div className="flex flex-col gap-y-1">
         <label htmlFor="email">Correo electrónico</label>
         <Input name="email" onBlur={handleEmailBlur} />

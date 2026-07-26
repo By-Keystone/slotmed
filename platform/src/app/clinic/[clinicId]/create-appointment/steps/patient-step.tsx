@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface BookingPatient {
   name: string;
   lastName: string;
   phone: string;
-  email?: string;
-  notes?: string;
+  email: string;
 }
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
   doctorName: string;
   date: string;
   time: string;
-  onNext: (patient: BookingPatient) => void;
+  onNext: (patient: BookingPatient) => Promise<void>;
   onBack: () => void;
 }
 
@@ -29,20 +29,28 @@ export function PatientStep({
   onBack,
 }: Props) {
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError(null);
     setPending(true);
 
     const formData = new FormData(event.currentTarget);
 
-    onNext({
-      name: formData.get("name") as string,
-      lastName: formData.get("lastName") as string,
-      phone: formData.get("phone") as string,
-      email: (formData.get("email") as string) || undefined,
-      notes: (formData.get("notes") as string) || undefined,
-    });
+    try {
+      await onNext({
+        name: formData.get("name") as string,
+        lastName: formData.get("lastName") as string,
+        phone: formData.get("phone") as string,
+        email: formData.get("email") as string,
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "No se pudo confirmar la cita",
+      );
+      setPending(false);
+    }
   }
 
   return (
@@ -103,27 +111,22 @@ export function PatientStep({
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="email" className="text-sm font-medium text-gray-700">
-            Email (opcional)
+            Email
           </label>
           <input
             id="email"
             name="email"
             type="email"
+            required
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="notes" className="text-sm font-medium text-gray-700">
-            Notas (opcional)
-          </label>
-          <textarea
-            id="notes"
-            name="notes"
-            rows={3}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
+        {error && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+            {error}
+          </p>
+        )}
 
         <div className="mt-2 flex gap-3">
           <Button
@@ -135,7 +138,14 @@ export function PatientStep({
             Atrás
           </Button>
           <Button type="submit" className="flex-1" disabled={pending}>
-            Confirmar reserva
+            {pending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Confirmando...
+              </>
+            ) : (
+              "Confirmar reserva"
+            )}
           </Button>
         </div>
       </form>
