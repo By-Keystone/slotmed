@@ -47,6 +47,7 @@ export class OrganizationRepository implements IOrganizationRepository {
             resourceId: resource.id,
             accountId: data.accountId,
             createdBy: data.userId,
+            role: "ADMIN",
           },
         });
 
