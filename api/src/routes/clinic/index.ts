@@ -1,5 +1,4 @@
 import { NotFound } from "@/application/errors/not-found.error";
-import { getClinicDoctorsSchema } from "@/application/queries/clinic/get-clinic-doctors.query";
 import { getClinicUsersSchema } from "@/application/queries/clinic/get-clinic-users.query";
 import {
   GetDoctorAvailabilityDto,
@@ -22,7 +21,6 @@ import { IClinicRepository } from "@/domain/repositories/clinic.repository";
 import { GetClinicUsersQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-users.query";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
-import { request } from "http";
 
 export interface ClinicRoutesOptions {
   clinicRepository: IClinicRepository;
@@ -157,7 +155,7 @@ export default async function clinicRoutes(
         return reply
           .status(201)
           .send({ message: "Availabilities created successfully" });
-      } catch (error) {}
+      } catch (error) { }
     },
   );
 }

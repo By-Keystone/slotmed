@@ -10,10 +10,26 @@ const PUBLIC_PATHS = [
   "/invite/accept",
 ];
 
+// Rutas públicas con segmentos dinámicos, que no calzan con match exacto.
+const PUBLIC_PATH_PATTERNS = [
+  /^\/clinic\/[^/]+\/create-appointment$/,
+  // Fetch client-side del wizard (disponibilidad del doctor). El middleware
+  // corre antes de que Next resuelva next.config.ts `rewrites()`, así que
+  // sin este bypass el fetch anónimo queda redirigido a /login.
+  /^\/api\/doctor-profile\//,
+];
+
+function isPublicPath(pathname: string) {
+  return (
+    PUBLIC_PATHS.includes(pathname) ||
+    PUBLIC_PATH_PATTERNS.some((pattern) => pattern.test(pathname))
+  );
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_PATHS.includes(pathname)) {
+  if (isPublicPath(pathname)) {
     if (process.env.BETA_ENDED === "false" && pathname === "/")
       return NextResponse.redirect(new URL("/beta", request.nextUrl));
     return NextResponse.next();
