@@ -13,7 +13,10 @@ const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   trustedOrigins: [process.env.CLIENT_ORIGIN ?? "http://localhost:3000"],
-  advanced: { database: { generateId: false } },
+  advanced: {
+    database: { generateId: false },
+    ipAddress: { ipAddressHeaders: ["x-forwarded-for"] },
+  },
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
