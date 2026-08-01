@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import { Specialty } from "@/lib/api/specialty/types";
 import { createSpecialtyAction } from "@/lib/actions/specialty/create-specialty.action";
 import { getOrganizationSpecialtiesAction } from "@/lib/actions/specialty/get-organization-specialties.action";
+import { toast } from "@/lib/toast";
 
 interface Props {
   organizationId: string;
@@ -15,11 +17,11 @@ export const SpecialtyMultiSelect = ({
   organizationId,
   initialSpecialties,
 }: Props) => {
+  const router = useRouter();
   const [specialties, setSpecialties] = useState(initialSpecialties);
   const [selected, setSelected] = useState<Specialty[]>([]);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const selectedIds = useMemo(() => new Set(selected.map((s) => s.id)), [selected]);
@@ -51,7 +53,6 @@ export const SpecialtyMultiSelect = ({
     const name = query.trim();
     if (!name) return;
 
-    setError(null);
     startTransition(async () => {
       const formData = new FormData();
       formData.set("name", name);
@@ -62,8 +63,14 @@ export const SpecialtyMultiSelect = ({
         formData,
       );
 
+      if (result.status === "auth-expired") {
+        toast.error("Tu sesión ha expirado. Vuelve a iniciar sesión.");
+        router.push("/login");
+        return;
+      }
+
       if (result.status === "error") {
-        setError(result.message);
+        toast.error(result.message);
         return;
       }
 
@@ -147,12 +154,6 @@ export const SpecialtyMultiSelect = ({
           </div>
         )}
       </div>
-
-      {error && (
-        <p className="text-sm text-red-500" role="alert">
-          {error}
-        </p>
-      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/lib/toast";
 
 export interface BookingPatient {
   name: string;
@@ -29,11 +30,9 @@ export function PatientStep({
   onBack,
 }: Props) {
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
     setPending(true);
 
     const formData = new FormData(event.currentTarget);
@@ -46,7 +45,7 @@ export function PatientStep({
         email: formData.get("email") as string,
       });
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error ? err.message : "No se pudo confirmar la cita",
       );
       setPending(false);
@@ -121,12 +120,6 @@ export function PatientStep({
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
-
-        {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-            {error}
-          </p>
-        )}
 
         <div className="mt-2 flex gap-3">
           <Button

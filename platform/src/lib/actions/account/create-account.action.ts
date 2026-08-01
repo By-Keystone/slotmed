@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import z from "zod";
+import z, { treeifyError } from "zod";
 
 const completeAccountSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -14,7 +14,10 @@ export type CreateAccountState =
       status: "error";
       message: string;
       fieldErrors?: Partial<
-        Record<keyof z.infer<typeof completeAccountSchema>, string[]>
+        Record<
+          keyof z.infer<typeof completeAccountSchema>,
+          { errors: string[] } | undefined
+        >
       >;
     };
 
@@ -28,7 +31,7 @@ export async function createAccountAction(
     return {
       status: "error",
       message: "Datos inválidos",
-      fieldErrors: parsed.error.flatten().fieldErrors,
+      fieldErrors: treeifyError(parsed.error).properties,
     };
   }
 

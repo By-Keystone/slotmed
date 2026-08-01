@@ -8,12 +8,23 @@ import {
   lookupUserByEmailAction,
 } from "@/lib/actions/user/lookup-user-by-email.action";
 import { SpecialtyMultiSelect } from "./specialty-multi-select";
+import { fieldError, type FieldErrors } from "@/lib/actions/types";
+
+interface InviteUserFields extends Record<string, unknown> {
+  name: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: string;
+  specialtyIds: string[];
+}
 
 interface Props {
   formId: string;
   action: (formData: FormData) => void;
   organizationId: string;
   specialties: Specialty[];
+  fieldErrors?: FieldErrors<InviteUserFields>;
 }
 
 export const InviteUserForm = ({
@@ -21,6 +32,7 @@ export const InviteUserForm = ({
   action,
   organizationId,
   specialties,
+  fieldErrors,
 }: Props) => {
   const [role, setRole] = useState<"USER" | "DOCTOR">("USER");
   const [existingUser, setExistingUser] = useState<LookedUpUser | null>(null);
@@ -48,7 +60,11 @@ export const InviteUserForm = ({
     <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-y-3">
       <div className="flex flex-col gap-y-1">
         <label htmlFor="email">Correo electrónico</label>
-        <Input name="email" onBlur={handleEmailBlur} />
+        <Input
+          name="email"
+          onBlur={handleEmailBlur}
+          error={fieldError(fieldErrors, "email")}
+        />
         {isLookingUp && (
           <p className="text-xs text-gray-400">Buscando usuario...</p>
         )}
@@ -66,6 +82,7 @@ export const InviteUserForm = ({
             key={`name-${existingUser?.id ?? "new"}`}
             name="name"
             value={existingUser?.name}
+            error={fieldError(fieldErrors, "name")}
           />
         </div>
         <div className="flex flex-col gap-y-1">
@@ -74,6 +91,7 @@ export const InviteUserForm = ({
             key={`lastName-${existingUser?.id ?? "new"}`}
             name="lastName"
             value={existingUser?.lastName}
+            error={fieldError(fieldErrors, "lastName")}
           />
         </div>
       </div>
@@ -84,6 +102,7 @@ export const InviteUserForm = ({
           key={`phone-${existingUser?.id ?? "new"}`}
           name="phone"
           value={existingUser?.phone}
+          error={fieldError(fieldErrors, "phone")}
         />
       </div>
 

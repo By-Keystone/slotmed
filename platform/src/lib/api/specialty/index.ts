@@ -1,4 +1,4 @@
-import { doFetch } from "../fetch";
+import { doFetchJson } from "../fetch";
 import { Specialty } from "./types";
 
 export const tags = {
@@ -10,12 +10,13 @@ export const specialtyApi = {
   getOrganizationSpecialties: async (
     organizationId: string,
   ): Promise<Specialty[]> => {
-    const response = await doFetch(`/${organizationId}/specialties`, {
-      method: "GET",
-      next: { tags: [tags.organizationSpecialties(organizationId)] },
-    });
-
-    const data = await response.json();
+    const data = await doFetchJson<{ specialties: Specialty[] }>(
+      `/${organizationId}/specialties`,
+      {
+        method: "GET",
+        next: { tags: [tags.organizationSpecialties(organizationId)] },
+      },
+    );
 
     return data.specialties;
   },

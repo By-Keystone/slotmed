@@ -1,4 +1,4 @@
-import { doFetch } from "../fetch";
+import { doFetchJson } from "../fetch";
 import { ClinicUser, ClinicWithUser } from "./types";
 
 export const tags = {
@@ -8,24 +8,16 @@ export const tags = {
 };
 
 export const clinicApi = {
-  getOrganizationClinics: async (organizationId: string): Promise<ClinicWithUser[]> => {
-    const response = await doFetch(`/organization/${organizationId}/clinics`, {
+  getOrganizationClinics: (
+    organizationId: string,
+  ): Promise<ClinicWithUser[]> =>
+    doFetchJson(`/organization/${organizationId}/clinics`, {
       method: "GET",
       next: { tags: [tags.organizationClinics(organizationId)] },
-    });
-
-    const data = await response.json();
-
-    return data;
-  },
-  getClinicUsers: async (clinicId: string): Promise<ClinicUser[]> => {
-    const response = await doFetch(`/clinic/${clinicId}/users`, {
+    }),
+  getClinicUsers: (clinicId: string): Promise<ClinicUser[]> =>
+    doFetchJson(`/clinic/${clinicId}/users`, {
       method: "GET",
       next: { tags: [tags.clinicUsers(clinicId)] },
-    });
-
-    const data = await response.json();
-
-    return data;
-  },
+    }),
 };

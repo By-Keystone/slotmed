@@ -16,7 +16,7 @@ const inviteUserSchema = z
     specialtyIds: z.array(z.string()).optional(),
   })
   .refine((data) => data.role !== "DOCTOR" || !!data.specialtyIds?.length, {
-    message: "Seleccioná al menos una especialidad",
+    message: "Selecciona al menos una especialidad",
     path: ["specialtyIds"],
   });
 

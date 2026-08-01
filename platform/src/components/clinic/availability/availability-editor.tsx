@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AvailabilityBlock } from "@/lib/api/availability/types";
 import { saveAvailability } from "@/lib/actions/availability/save-availability.action";
+import { toast } from "@/lib/toast";
 
 const DAYS = [
   { label: "Lunes", value: 1 },
@@ -36,12 +37,11 @@ interface Props {
 
 export function AvailabilityEditor({ initial }: Props) {
   const { clinicId } = useParams<{ clinicId: string }>();
+  const router = useRouter();
   const [schedule, setSchedule] = useState<ScheduleByDay>(
     toScheduleByDay(initial),
   );
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   function addSlot(day: number) {
     setSchedule((prev) => ({
@@ -73,8 +73,6 @@ export function AvailabilityEditor({ initial }: Props) {
 
   async function handleSave() {
     setPending(true);
-    setError(null);
-    setSuccess(false);
 
     const blocks: AvailabilityBlock[] = Object.entries(schedule).flatMap(
       ([day, slots]) =>
@@ -89,15 +87,16 @@ export function AvailabilityEditor({ initial }: Props) {
     setPending(false);
 
     if (result.status === "success") {
-      setSuccess(true);
+      toast.success("Disponibilidad guardada correctamente");
       return;
     }
     if (result.status === "auth-expired") {
-      setError("Tu sesión expiró. Inicia sesión de nuevo.");
+      toast.error("Tu sesión ha expirado. Vuelve a iniciar sesión.");
+      router.push("/login");
       return;
     }
     if (result.status === "error") {
-      setError(result.message);
+      toast.error(result.message);
     }
   }
 
@@ -163,17 +162,6 @@ export function AvailabilityEditor({ initial }: Props) {
           </div>
         ))}
       </div>
-
-      {error && (
-        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          {error}
-        </p>
-      )}
-      {success && (
-        <p className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-600">
-          Disponibilidad guardada correctamente.
-        </p>
-      )}
 
       <Button onClick={handleSave} disabled={pending} className="mt-6">
         {pending ? (

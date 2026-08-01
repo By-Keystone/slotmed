@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ClinicDoctor } from "@/lib/api/doctors/types";
-import { appointmentsApi } from "@/lib/api/appointments";
+import { createAppointmentAction } from "@/lib/actions/appointment/create-appointment.action";
 import { StepperProgress } from "./steps/stepper-progress";
 import { SpecialtyStep } from "./steps/specialty-step";
 import { DoctorStep } from "./steps/doctor-step";
@@ -92,7 +92,7 @@ export function BookingWizard({ doctors }: Props) {
               date={dateTime.date}
               time={dateTime.time}
               onNext={async (p) => {
-                await appointmentsApi.create({
+                const result = await createAppointmentAction({
                   doctorProfileId: doctor.doctorProfileId,
                   specialty: specialty.name,
                   scheduledAt: new Date(
@@ -104,6 +104,14 @@ export function BookingWizard({ doctors }: Props) {
                   patientPhone: p.phone,
                   patientEmail: p.email,
                 });
+
+                if (result.status !== "success") {
+                  throw new Error(
+                    result.status === "error"
+                      ? result.message
+                      : "No se pudo crear la cita",
+                  );
+                }
 
                 setPatient(p);
                 setStep(5);

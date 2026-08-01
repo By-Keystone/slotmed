@@ -1,7 +1,7 @@
 import "server-only";
 
 import { headers } from "next/headers";
-import { AuthExpiredError } from "./errors";
+import { ApiError, AuthExpiredError } from "./errors";
 
 const API_URL = process.env.API_URL;
 
@@ -24,4 +24,25 @@ export async function doFetch(to: string, init?: RequestInit) {
   if (response.status === 401) throw new AuthExpiredError();
 
   return response;
+}
+
+/**
+ * Variante estándar para los clientes de `lib/api`: reenvía la cookie, valida
+ * `res.ok` y devuelve el cuerpo ya parseado. Lanza `ApiError` (con el mensaje
+ * que devuelva la API) ante cualquier respuesta no-ok. Tolera cuerpos vacíos
+ * (p. ej. respuestas 201/204 de mutaciones).
+ */
+export async function doFetchJson<T = unknown>(
+  to: string,
+  init?: RequestInit,
+): Promise<T> {
+  const response = await doFetch(to, init);
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new ApiError(response.status, payload?.message ?? "Error en la API");
+  }
+
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }

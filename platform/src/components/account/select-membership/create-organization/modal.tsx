@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { CreateOrganizationForm } from "@/components/organization/create-organization/form";
 import { createOrganizationAction } from "@/lib/actions/organization/create-organization.action";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useFormAction } from "@/hooks/useFormAction";
 
 const FORM_ID = "create-organization-form";
 
@@ -19,27 +19,18 @@ interface Props {
   setIsOpen: (value: boolean) => void;
 }
 
+interface OrganizationFields extends Record<string, unknown> {
+  name: string;
+}
+
 export const CreateOrganizationModal = ({ isOpen, setIsOpen }: Props) => {
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  const submit = (formData: FormData) => {
-    startTransition(async () => {
-      setError(null);
-      const result = await createOrganizationAction(
-        { status: "idle" },
-        formData,
-      );
-
-      if (result.status === "success") {
-        setIsOpen(false);
-        return;
-      }
-      if (result.status === "error") {
-        setError(result.message);
-      }
-    });
-  };
+  const { submit, isPending, fieldErrors } = useFormAction<OrganizationFields>(
+    (formData) => createOrganizationAction({ status: "idle" }, formData),
+    {
+      successMessage: "Organización creada",
+      onSuccess: () => setIsOpen(false),
+    },
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -47,12 +38,11 @@ export const CreateOrganizationModal = ({ isOpen, setIsOpen }: Props) => {
         <DialogHeader>
           <DialogTitle>Nueva organización</DialogTitle>
         </DialogHeader>
-        <CreateOrganizationForm formId={FORM_ID} action={submit} />
-        {error && (
-          <p className="mt-2 text-sm text-red-500" role="alert">
-            {error}
-          </p>
-        )}
+        <CreateOrganizationForm
+          formId={FORM_ID}
+          action={submit}
+          fieldErrors={fieldErrors}
+        />
         <DialogFooter>
           <Button form={FORM_ID} type="submit" disabled={isPending}>
             {isPending ? "Creando..." : "Crear"}

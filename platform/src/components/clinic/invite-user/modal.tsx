@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +12,8 @@ import {
 import { InviteUserForm } from "./form";
 import { inviteUserAction } from "@/lib/actions/user/invite-user.action";
 import { Specialty } from "@/lib/api/specialty/types";
+import { useFormAction } from "@/hooks/useFormAction";
+import { toast } from "@/lib/toast";
 
 interface Props {
   isOpen: boolean;
@@ -20,41 +21,43 @@ interface Props {
   specialties: Specialty[];
 }
 
+interface InviteUserFields extends Record<string, unknown> {
+  name: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: string;
+  specialtyIds: string[];
+}
+
 const FORM_ID = "invite-user-form";
 
 export const InviteUserModal = ({ isOpen, setIsOpen, specialties }: Props) => {
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
   const { resourceId, clinicId } = useParams<{
     resourceId: string;
     clinicId: string;
   }>();
 
-  const submit = (formData: FormData) => {
-    setError(null);
+  const {
+    submit: runInvite,
+    isPending,
+    fieldErrors,
+  } = useFormAction<InviteUserFields>(
+    (formData) => inviteUserAction(clinicId, { status: "idle" }, formData),
+    {
+      successMessage: "Invitación enviada",
+      onSuccess: () => setIsOpen(false),
+    },
+  );
 
+  const submit = (formData: FormData) => {
     const role = formData.get("role");
     const specialtyIds = formData.getAll("specialtyIds");
     if (role === "DOCTOR" && specialtyIds.length === 0) {
-      setError("Seleccioná al menos una especialidad");
+      toast.error("Selecciona al menos una especialidad");
       return;
     }
-
-    startTransition(async () => {
-      const result = await inviteUserAction(clinicId, { status: "idle" }, formData);
-
-      if (result.status === "success") {
-        setIsOpen(false);
-        return;
-      }
-      if (result.status === "auth-expired") {
-        setError("Tu sesión expiró. Inicia sesión de nuevo.");
-        return;
-      }
-      if (result.status === "error") {
-        setError(result.message);
-      }
-    });
+    runInvite(formData);
   };
 
   return (
@@ -68,12 +71,8 @@ export const InviteUserModal = ({ isOpen, setIsOpen, specialties }: Props) => {
           action={submit}
           organizationId={resourceId}
           specialties={specialties}
+          fieldErrors={fieldErrors}
         />
-        {error && (
-          <p className="mt-2 text-sm text-red-500" role="alert">
-            {error}
-          </p>
-        )}
         <DialogFooter>
           <Button form={FORM_ID} type="submit" disabled={isPending}>
             {isPending ? "Enviando..." : "Enviar invitación"}

@@ -19,10 +19,6 @@ const nextConfig: NextConfig = {
         source: "/api/doctor-profile/:path*",
         destination: `${process.env.API_URL}/doctor-profile/:path*`,
       },
-      {
-        source: "/api/appointment",
-        destination: `${process.env.API_URL}/appointment`,
-      },
     ];
   },
 };

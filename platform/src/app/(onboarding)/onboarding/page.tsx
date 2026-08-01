@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   createAccountAction,
   type CreateAccountState,
 } from "@/lib/actions/account/create-account.action";
+import { fieldError } from "@/lib/actions/types";
+import { toast } from "@/lib/toast";
 
 const initialState: CreateAccountState = { status: "idle" };
 
@@ -14,6 +16,13 @@ export default function OnboardingPage() {
     createAccountAction,
     initialState,
   );
+
+  // Los errores por campo se pintan inline; el mensaje general va al toast.
+  useEffect(() => {
+    if (state.status === "error" && !state.fieldErrors) {
+      toast.error(state.message);
+    }
+  }, [state]);
 
   return (
     <div className="w-full max-w-md flex justify-self-center h-dvh items-center">
@@ -41,18 +50,13 @@ export default function OnboardingPage() {
               placeholder="Mi consultorio"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
-            {state.status === "error" && !!state.fieldErrors?.name && (
-              <p className="text-xs text-red-500">
-                {state.fieldErrors.name[0]}
-              </p>
-            )}
+            {state.status === "error" &&
+              fieldError(state.fieldErrors, "name") && (
+                <p className="text-xs text-red-500">
+                  {fieldError(state.fieldErrors, "name")}
+                </p>
+              )}
           </div>
-
-          {state.status === "error" && !state.fieldErrors && (
-            <p className="text-sm text-red-500" role="alert">
-              {state.message}
-            </p>
-          )}
 
           <Button type="submit" className="mt-2 w-full" disabled={isPending}>
             {isPending ? "Creando..." : "Continuar"}
