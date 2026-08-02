@@ -1,6 +1,6 @@
 "use server";
 
-import { doFetch } from "@/lib/api/fetch";
+import { doFetchJson } from "@/lib/api/fetch";
 
 export type LookedUpUser = {
   id: string;
@@ -15,15 +15,12 @@ export async function lookupUserByEmailAction(
 ): Promise<LookedUpUser | null> {
   if (!email) return null;
 
+  // Búsqueda "suave": cualquier fallo (no encontrado, error) devuelve null.
   try {
-    const response = await doFetch(
+    const data = await doFetchJson<{ user?: LookedUpUser | null }>(
       `/user/by-email?email=${encodeURIComponent(email)}`,
       { method: "GET" },
     );
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
 
     return data.user ?? null;
   } catch {

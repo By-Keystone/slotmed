@@ -1,6 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
+import { doFetchJson } from "@/lib/api/fetch";
+import { AuthExpiredError } from "@/lib/api/errors";
 import { redirect } from "next/navigation";
 import z, { treeifyError } from "zod";
 
@@ -35,31 +36,20 @@ export async function createAccountAction(
     };
   }
 
-  // Reenvía la cookie de sesión de Better Auth al api para autenticar.
-  const cookieHeader = (await headers()).get("cookie") ?? "";
-
-  const response = await fetch(`${process.env.API_URL}/account`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      cookie: cookieHeader,
-    },
-    body: JSON.stringify({ accountName: parsed.data.name }),
-  });
-
-  if (response.status === 401) {
-    redirect("/login");
-  }
-
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null);
+  let accountId: string;
+  try {
+    const result = await doFetchJson<{ accountId: string }>("/account", {
+      method: "POST",
+      body: JSON.stringify({ accountName: parsed.data.name }),
+    });
+    accountId = result.accountId;
+  } catch (error) {
+    if (error instanceof AuthExpiredError) redirect("/login");
     return {
       status: "error",
-      message: payload?.message ?? "No se pudo crear la cuenta",
+      message: error instanceof Error ? error.message : "No se pudo crear la cuenta",
     };
   }
-
-  const { accountId } = await response.json();
 
   redirect(`/account/${accountId}/select`);
 }

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/common/form";
 import {
   createAccountAction,
   type CreateAccountState,
@@ -37,26 +38,18 @@ export default function OnboardingPage() {
         </div>
 
         <form className="flex flex-col gap-4" action={createAccount}>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Nombre de la cuenta
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              autoFocus
-              placeholder="Mi consultorio"
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-            {state.status === "error" &&
-              fieldError(state.fieldErrors, "name") && (
-                <p className="text-xs text-red-500">
-                  {fieldError(state.fieldErrors, "name")}
-                </p>
-              )}
-          </div>
+          <Input
+            label="Nombre de la cuenta"
+            name="name"
+            required
+            autoFocus
+            placeholder="Mi consultorio"
+            error={
+              state.status === "error"
+                ? fieldError(state.fieldErrors, "name")
+                : undefined
+            }
+          />
 
           <Button type="submit" className="mt-2 w-full" disabled={isPending}>
             {isPending ? "Creando..." : "Continuar"}

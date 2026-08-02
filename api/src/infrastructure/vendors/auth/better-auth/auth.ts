@@ -17,6 +17,14 @@ const auth = betterAuth({
     database: { generateId: false },
     ipAddress: { ipAddressHeaders: ["x-forwarded-for"] },
   },
+  session: {
+    // Ventana de sesión: 7 días. Como es rodante, un usuario activo no se
+    // desloguea; solo caduca tras 7 días de inactividad.
+    expiresIn: 60 * 60 * 24 * 7, // 7 días
+    // Cada cuánto se extiende la ventana: si la sesión tiene más de 1 día al
+    // usarse, Better Auth reescribe la cookie con expiración "ahora + 7 días".
+    updateAge: 60 * 60 * 24, // 1 día
+  },
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,

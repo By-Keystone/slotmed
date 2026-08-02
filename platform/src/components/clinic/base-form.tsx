@@ -1,4 +1,4 @@
-import { Input } from "../common/form/input";
+import { Input } from "@/components/common/form";
 import { fieldError, type FieldErrors } from "@/lib/actions/types";
 
 interface ClinicFields extends Record<string, unknown> {
@@ -22,22 +22,22 @@ export const ClinicBaseForm = ({
 }: Props) => {
   return (
     <form id={formId} action={action} className="flex flex-col gap-y-3">
-      <div className="flex flex-col gap-y-1">
-        <label htmlFor="name">Nombre de la clínica</label>
-        <Input
-          name="name"
-          value={clinic?.name}
-          error={fieldError(fieldErrors, "name")}
-        />
-      </div>
-      <div className="flex flex-col gap-y-1">
-        <label htmlFor="phone">Teléfono</label>
-        <Input name="phone" error={fieldError(fieldErrors, "phone")} />
-      </div>
-      <div className="flex flex-col gap-y-1">
-        <label htmlFor="address">Dirección</label>
-        <Input name="address" error={fieldError(fieldErrors, "address")} />
-      </div>
+      <Input
+        label="Nombre de la clínica"
+        name="name"
+        value={clinic?.name}
+        error={fieldError(fieldErrors, "name")}
+      />
+      <Input
+        label="Teléfono"
+        name="phone"
+        error={fieldError(fieldErrors, "phone")}
+      />
+      <Input
+        label="Dirección"
+        name="address"
+        error={fieldError(fieldErrors, "address")}
+      />
     </form>
   );
 };

@@ -1,6 +1,7 @@
 "use server";
 
-import { doFetch } from "@/lib/api/fetch";
+import { doFetchJson } from "@/lib/api/fetch";
+import { toActionState } from "@/lib/actions/to-action-state";
 import { tags } from "@/lib/api/availability";
 import { AvailabilityBlock } from "@/lib/api/availability/types";
 import { getSession } from "@/lib/auth/session";
@@ -23,31 +24,15 @@ export async function saveAvailability(
   const session = await getSession();
   if (!session) return { status: "auth-expired" };
 
-  console.log({ blocks });
-
-  // return { status: "success" };
-
   try {
-    const response = await doFetch(`/clinic/${clinicId}/availability`, {
+    await doFetchJson(`/clinic/${clinicId}/availability`, {
       method: "PUT",
       body: JSON.stringify({ availabilities: blocks }),
     });
 
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      const message =
-        typeof payload?.message === "string"
-          ? payload.message
-          : "No se pudo guardar la disponibilidad";
-      return { status: "error", message };
-    }
-
     revalidateTag(tags.clinicAvailability(clinicId));
     return { status: "success" };
   } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Ha ocurrido un error",
-    };
+    return toActionState(error);
   }
 }

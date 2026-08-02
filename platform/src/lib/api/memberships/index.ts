@@ -1,4 +1,4 @@
-import { doFetch } from "@/lib/api/fetch";
+import { doFetchJson } from "@/lib/api/fetch";
 import { MembershipRole } from "@/lib/utils";
 import { NoMembershipError } from "../errors";
 import { UserMembership } from "./types";
@@ -32,19 +32,23 @@ export const tags = {
 };
 
 export const userMembershipsApi = {
-  getUserMemberships: async () =>
-    doFetch("/user/me/memberships", {
-      method: "GET",
-      next: { tags: [tags.memberships()] },
-    }),
+  getUserMemberships: async (): Promise<Membership[]> => {
+    const data = await doFetchJson<{ memberships?: Membership[] }>(
+      "/user/me/memberships",
+      {
+        method: "GET",
+        next: { tags: [tags.memberships()] },
+      },
+    );
+    return data.memberships ?? [];
+  },
   getMembershipForResource: async (
     resourceId: string,
   ): Promise<UserMembership> => {
-    const res = await doFetch(`/user/me/resource/${resourceId}/membership`, {
-      next: { tags: [tags.membershipsForResource(resourceId)] },
-    });
-
-    const membership = await res.json();
+    const membership = await doFetchJson<UserMembership | null>(
+      `/user/me/resource/${resourceId}/membership`,
+      { next: { tags: [tags.membershipsForResource(resourceId)] } },
+    );
 
     if (!membership) throw new NoMembershipError();
 

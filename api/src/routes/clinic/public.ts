@@ -2,13 +2,18 @@ import { getClinicDoctorsParamsSchema } from "@/application/queries/clinic/get-c
 import { GetClinicDoctorsQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-doctors.query";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
+import { policy } from "@/plugins/policy";
 
 export default async function clinicPublicRoutes(fastify: FastifyInstance) {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
 
   app.get(
     "/clinic/:clinicId/doctors",
-    { schema: { params: getClinicDoctorsParamsSchema } },
+    {
+      schema: { params: getClinicDoctorsParamsSchema },
+      // Pública: la usa el paciente al reservar, sin sesión.
+      ...policy({ public: true }),
+    },
     async (request, reply) => {
       try {
         const query = new GetClinicDoctorsQuery();

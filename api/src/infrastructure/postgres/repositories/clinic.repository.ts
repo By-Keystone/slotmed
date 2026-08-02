@@ -20,6 +20,14 @@ export class ClinicRepository implements IClinicRepository {
           "Parent resource must be an organization",
         );
 
+      // La organización llega en el cuerpo de la petición, así que hay que
+      // comprobar que sea de la misma cuenta: sin esto se podría colgar una
+      // clínica de la organización de otra cuenta.
+      if (parentResource.accountId !== data.accountId)
+        throw new UnprocessableEntity(
+          "Parent organization does not belong to this account",
+        );
+
       const resource = await getClient().resource.create({
         data: {
           type: "CLINIC",
@@ -51,8 +59,12 @@ export class ClinicRepository implements IClinicRepository {
     return toDomain(clinic);
   }
 
-  async get(): Promise<Clinic[]> {
-    const clinics = await getClient().clinic.findMany();
+  // El aislamiento entre cuentas es por columna, no por schema: sin este filtro
+  // la consulta devuelve las clínicas de todas las cuentas.
+  async get(accountId: string): Promise<Clinic[]> {
+    const clinics = await getClient().clinic.findMany({
+      where: { resource: { accountId } },
+    });
     return clinics.map((clinic) => toDomain(clinic));
   }
 }

@@ -40,7 +40,13 @@ export async function doFetchJson<T = unknown>(
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new ApiError(response.status, payload?.message ?? "Error en la API");
+    // El backend a veces devuelve un objeto (p. ej. error de Prisma) en
+    // `message`; solo lo usamos si es un string renderizable.
+    const message =
+      typeof payload?.message === "string"
+        ? payload.message
+        : "Ha ocurrido un error";
+    throw new ApiError(response.status, message);
   }
 
   const text = await response.text();

@@ -2,13 +2,13 @@ import { NotFound } from "@/application/errors/not-found.error";
 import { getClient } from "@/infrastructure/postgres/transaction-context";
 import z from "zod";
 
+// El parámetro se llama `resourceId` por convención: es el nombre que busca
+// `checkResource` en la política. La URL no cambia.
 export const getDoctorAvailabilityParamsSchema = z.object({
-  clinicId: z.string({ error: "Clinic ID must be defined" }),
+  resourceId: z.string({ error: "Clinic ID must be defined" }),
 });
 
-export type GetDoctorAvailabilityDto = z.infer<
-  typeof getDoctorAvailabilityParamsSchema
-> & { userId: string };
+export type GetDoctorAvailabilityDto = { clinicId: string; userId: string };
 
 export class GetDoctorAvailabilityUseCase {
   constructor() {}

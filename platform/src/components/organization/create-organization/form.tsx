@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@/components/common/form/input";
+import { Input } from "@/components/common/form";
 import { fieldError, type FieldErrors } from "@/lib/actions/types";
 
 interface OrganizationFields extends Record<string, unknown> {
@@ -20,10 +20,7 @@ export const CreateOrganizationForm = ({
 }: Props) => {
   return (
     <form id={formId} action={action}>
-      <div className="flex flex-col gap-y-2">
-        <label htmlFor="name">Nombre</label>
-        <Input name="name" error={fieldError(fieldErrors, "name")} />
-      </div>
+      <Input label="Nombre" name="name" error={fieldError(fieldErrors, "name")} />
     </form>
   );
 };

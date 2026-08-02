@@ -13,6 +13,7 @@ import {
 } from "@/application/use-cases/user-invitation/verify-invitation-token.usecase";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
+import { policy } from "@/plugins/policy";
 import { request } from "http";
 import auth from "@/infrastructure/vendors/auth/better-auth/auth";
 
@@ -26,7 +27,10 @@ export default async function userInvitationRoutes(
 
   app.get(
     "/:token",
-    { schema: { params: verifyInvitationTokenParamsSchema } },
+    {
+      schema: { params: verifyInvitationTokenParamsSchema },
+      ...policy({ public: true }),
+    },
     async (request, reply) => {
       try {
         const usecase = new VerifyInvitationTokenUseCase();
@@ -50,7 +54,10 @@ export default async function userInvitationRoutes(
 
   app.post(
     "/:token/accept",
-    { schema: { params: acceptInvitationParamsSchema } },
+    {
+      schema: { params: acceptInvitationParamsSchema },
+      ...policy({ public: true }),
+    },
     async (request, reply) => {
       try {
         const usecase = new AcceptInvitationUseCase();
@@ -75,7 +82,7 @@ export default async function userInvitationRoutes(
 
   app.post(
     "/set-password",
-    { schema: { body: setPasswordSchema } },
+    { schema: { body: setPasswordSchema }, ...policy({ public: true }) },
     async (request, reply) => {
       try {
         const usecase = new SetPasswordUseCase();

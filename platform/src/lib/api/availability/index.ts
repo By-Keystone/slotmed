@@ -1,4 +1,4 @@
-import { doFetch } from "../fetch";
+import { doFetchJson } from "../fetch";
 import { AvailabilityBlock } from "./types";
 
 export const tags = {
@@ -11,12 +11,13 @@ export const availabilityApi = {
    * el doctor por la sesión + el clinicId.
    */
   getMyAvailability: async (clinicId: string): Promise<AvailabilityBlock[]> => {
-    const res = await doFetch(`/clinic/${clinicId}/availability`, {
-      method: "GET",
-      next: { tags: [tags.clinicAvailability(clinicId)] },
-    });
-
-    const data = await res.json();
+    const data = await doFetchJson<{ availabilities: AvailabilityBlock[] }>(
+      `/clinic/${clinicId}/availability`,
+      {
+        method: "GET",
+        next: { tags: [tags.clinicAvailability(clinicId)] },
+      },
+    );
     return data.availabilities;
   },
 };

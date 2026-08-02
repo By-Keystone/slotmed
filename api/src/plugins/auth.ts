@@ -2,17 +2,19 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
 import { fromNodeHeaders } from "better-auth/node";
 import auth from "@/infrastructure/vendors/auth/better-auth/auth";
+import { UserRole } from "@prisma/client";
 
 /**
  * Identidad resuelta desde la sesión de Better Auth e inyectada en la request.
  * `accountId` puede ser `null` hasta que el usuario completa el onboarding;
- * usa `requireAccount` en rutas que necesiten un tenant garantizado.
+ * declara `policy({ account: true })` en las rutas que necesiten una cuenta.
  */
 export interface UserClaims {
   userId: string;
   email: string;
   accountId: string | null;
-  role: string;
+  /** Rol global del usuario en su cuenta. Cambia casi nunca. */
+  role: UserRole | null;
 }
 
 declare module "fastify" {
@@ -22,7 +24,6 @@ declare module "fastify" {
 
   interface FastifyInstance {
     authenticate: (request: FastifyRequest) => Promise<void>;
-    requireAccount: (request: FastifyRequest) => Promise<void>;
   }
 }
 
@@ -36,29 +37,16 @@ async function authPlugin(fastify: FastifyInstance) {
       throw fastify.httpErrors.unauthorized("Missing or invalid session");
     }
 
-    const sessionUser = session.user as {
-      id: string;
-      email: string;
-      accountId?: string | null;
-      role?: string | null;
-    };
+    const sessionUser = session.user;
 
     request.user = {
       userId: sessionUser.id,
       email: sessionUser.email,
       accountId: sessionUser.accountId ?? null,
-      role: sessionUser.role ?? "USER",
+      role: (sessionUser.role as UserRole) ?? null,
     };
   });
 
-  fastify.decorate("requireAccount", async (request: FastifyRequest) => {
-    if (!request.user) {
-      await fastify.authenticate(request);
-    }
-    if (!request.user.accountId) {
-      throw fastify.httpErrors.forbidden("No account associated with user");
-    }
-  });
 }
 
 export default fp(authPlugin, { name: "auth" });

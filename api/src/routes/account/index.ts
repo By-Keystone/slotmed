@@ -9,6 +9,7 @@ import {
   CompleteAccountSetupUseCase,
 } from "@/application/use-cases/account/complete-account-setup.usecase";
 import { BadRequest } from "@/application/errors/bad-request.errors";
+import { policy } from "@/plugins/policy";
 
 interface AccountRoutesOptions {
   userRepository: IUserRepository;
@@ -34,7 +35,8 @@ export default async function accountRoutes(
     "/account",
     {
       schema: { body: completeAccountSetupSchema },
-      preHandler: [fastify.authenticate],
+      // Sin `account`: este endpoint es justo el que crea la cuenta.
+      ...policy({ confirmed: true }),
     },
     async (request, reply) => {
       try {

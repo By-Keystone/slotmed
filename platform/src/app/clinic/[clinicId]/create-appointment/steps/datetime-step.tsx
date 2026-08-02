@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { doctorProfileApi } from "@/lib/api/doctor-profile";
+import { getDoctorAvailabilityAction } from "@/lib/actions/doctor-profile/get-availability.action";
 import { DoctorAvailability } from "@/lib/api/doctor-profile/types";
 import { generateSlotsForDate } from "../lib/generate-slots";
 import {
@@ -38,8 +38,7 @@ export function DateTimeStep({ doctorProfileId, onNext, onBack }: Props) {
     setSelectedDate(null);
     setTime(null);
 
-    doctorProfileApi
-      .getAvailability(doctorProfileId)
+    getDoctorAvailabilityAction(doctorProfileId)
       .then(setAvailabilities)
       .catch(() => setError("No se pudo cargar la disponibilidad del doctor."));
   }, [doctorProfileId]);

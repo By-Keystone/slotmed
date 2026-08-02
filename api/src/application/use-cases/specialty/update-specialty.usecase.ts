@@ -7,8 +7,10 @@ export const updateSpecialtyBodySchema = z.object({
     name: z.string().optional()
 })
 
+// El parámetro de la organización se llama `resourceId` por convención: es el
+// nombre que busca `checkResource` en la política. La URL no cambia.
 export const updateSpecialtyParamsSchema = z.object({
-    organizationId: z.string(),
+    resourceId: z.string(),
     specialtyId: z.string()
 })
 

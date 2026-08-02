@@ -1,7 +1,8 @@
 "use server";
 
 import { tags } from "@/lib/api/clinic";
-import { doFetch } from "@/lib/api/fetch";
+import { doFetchJson } from "@/lib/api/fetch";
+import { toActionState } from "@/lib/actions/to-action-state";
 import { getSession } from "@/lib/auth/session";
 import { revalidateTag } from "next/cache";
 import z, { treeifyError } from "zod";
@@ -61,28 +62,14 @@ export async function inviteUserAction(
   }
 
   try {
-    const response = await doFetch("/user/invite", {
+    await doFetchJson("/user/invite", {
       method: "POST",
       body: JSON.stringify({ ...parsed.data, resourceId: clinicId }),
     });
 
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      // El backend a veces devuelve un objeto de error (Prisma) en `message`;
-      // aseguramos que siempre sea un string para poder renderizarlo.
-      const message =
-        typeof payload?.message === "string"
-          ? payload.message
-          : "No se pudo invitar al usuario";
-      return { status: "error", message };
-    }
-
     revalidateTag(tags.clinicUsers(clinicId));
     return { status: "success" };
   } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Ha ocurrido un error",
-    };
+    return toActionState(error);
   }
 }

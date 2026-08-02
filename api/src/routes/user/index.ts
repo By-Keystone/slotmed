@@ -1,10 +1,14 @@
 import { IEmailService } from "@/application/ports/email-service.port";
 import { getUserMembershipSchema } from "@/application/queries/membership/get-user-membership.query";
-import { GetUserByEmailQuery, getUserByEmailQueryParamsSchema } from "@/application/queries/user/get-user-by-email.query";
+import {
+  GetUserByEmailQuery,
+  getUserByEmailQueryParamsSchema,
+} from "@/application/queries/user/get-user-by-email.query";
 import {
   inviteUserSchema,
   InviteUserUseCase,
 } from "@/application/use-cases/user/invite-user.usecase";
+import { policy } from "@/plugins/policy";
 import { IUserRepository } from "@/domain/repositories/user.repository";
 import { ITransactionManager } from "@/domain/services/transaction-manager";
 import { GetUserMembership } from "@/infrastructure/postgres/queries/membership/get-user-membership.query";
@@ -24,14 +28,13 @@ export default async function userRoutes(
 ) {
   const { userRepository, transactionManager, emailService } = opts;
 
-  fastify.addHook("preHandler", fastify.authenticate);
-  fastify.addHook("preHandler", fastify.authorize);
-
   const app = fastify.withTypeProvider<ZodTypeProvider>();
 
   app.get(
     "/me/memberships",
-    { preHandler: [fastify.requireAccount] },
+    {
+      ...policy({ account: true, confirmed: true, onboarded: true }),
+    },
     async (request, reply) => {
       try {
         const query = new UserMembershipsQuery();
@@ -57,7 +60,13 @@ export default async function userRoutes(
 
   app.get(
     "/me",
-    { preHandler: [fastify.authenticate] },
+    {
+      // No exige `onboarded`: este endpoint es justo el que el frontend usa
+      // para leer `onboardingCompleted` y decidir si mostrar el onboarding.
+      // Exigirlo crea un loop /onboarding → /login para el usuario recién
+      // confirmado que aún no completó el onboarding.
+      ...policy({ confirmed: true }),
+    },
     async (request, reply) => {
       const user = await userRepository.findById(request.user.userId);
       if (!user) {
@@ -79,7 +88,13 @@ export default async function userRoutes(
 
   app.get(
     "/me/resource/:resourceId/membership",
-    { schema: { params: getUserMembershipSchema } },
+    {
+      schema: { params: getUserMembershipSchema },
+      // Sin `checkResource`: este endpoint existe precisamente para responder
+      // si el usuario tiene membership o no, y ya devuelve vacío cuando no la
+      // hay. Exigirla aquí lo convertiría en un 404 en vez de una respuesta.
+      ...policy({ confirmed: true, onboarded: true }),
+    },
     async (request, reply) => {
       try {
         const query = new GetUserMembership();
@@ -109,7 +124,10 @@ export default async function userRoutes(
     "/invite",
     {
       schema: { body: inviteUserSchema },
-      preHandler: [fastify.requireAccount],
+      // El recurso al que se invita llega en el cuerpo, no en la URL, así que
+      // `checkResource` no aplica: que sea de la cuenta del invitador lo
+      // comprueba el caso de uso.
+      ...policy({ account: true, confirmed: true, onboarded: true }),
     },
     async (request, reply) => {
       try {
@@ -123,28 +141,44 @@ export default async function userRoutes(
           accountId: request.user.accountId!,
         });
 
-        return reply.status(200).send({ message: "Se ha enviado la invitación al usuario" });
+        return reply
+          .status(200)
+          .send({ message: "Se ha enviado la invitación al usuario" });
       } catch (error) {
         console.error({ error });
-        return reply.status(500).send({ message: "Ha ocurrido un error al invitar al usuario" });
+        return reply
+          .status(500)
+          .send({ message: "Ha ocurrido un error al invitar al usuario" });
       }
     },
   );
 
-  app.get("/by-email", { preHandler: [fastify.requireAccount], schema: { querystring: getUserByEmailQueryParamsSchema } }, async (request, reply) => {
-    try {
-      const query = new GetUserByEmailQuery();
+  app.get(
+    "/by-email",
+    {
+      schema: { querystring: getUserByEmailQueryParamsSchema },
+      ...policy({ account: true, confirmed: true, onboarded: true }),
+    },
+    async (request, reply) => {
+      try {
+        const query = new GetUserByEmailQuery();
 
-      const user = await query.execute({ email: request.query.email });
+        const user = await query.execute({ email: request.query.email });
 
-      return reply.status(200).send({ user })
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === "P2025")
-        return reply.status(404).send({ user: null })
+        return reply.status(200).send({ user });
+      } catch (error) {
+        if (
+          error instanceof PrismaClientKnownRequestError &&
+          error.code === "P2025"
+        )
+          return reply.status(404).send({ user: null });
 
-      console.error("Ocurrió un error buscando usuario por correo: ", error);
+        console.error("Ocurrió un error buscando usuario por correo: ", error);
 
-      return reply.status(500).send({ message: "Ocurrió un error al buscar usuario por correo" })
-    }
-  })
+        return reply
+          .status(500)
+          .send({ message: "Ocurrió un error al buscar usuario por correo" });
+      }
+    },
+  );
 }

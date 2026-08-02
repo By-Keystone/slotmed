@@ -5,8 +5,10 @@ import {
 } from "@/infrastructure/postgres/transaction-context";
 import z from "zod";
 
+// El parámetro se llama `resourceId` por convención: es el nombre que busca
+// `checkResource` en la política. La URL no cambia.
 export const insertAvailabilityParamsSchema = z.object({
-  clinicId: z.string({ error: "Clinic ID must be defined" }),
+  resourceId: z.string({ error: "Clinic ID must be defined" }),
 });
 
 export const insertAvailabilityBodySchema = z.object({
@@ -22,9 +24,8 @@ export const insertAvailabilityBodySchema = z.object({
   ),
 });
 
-export type InsertAvailabilityDto = z.infer<
-  typeof insertAvailabilityParamsSchema
-> & {
+export type InsertAvailabilityDto = {
+  clinicId: string;
   userId: string;
 } & z.infer<typeof insertAvailabilityBodySchema>;
 

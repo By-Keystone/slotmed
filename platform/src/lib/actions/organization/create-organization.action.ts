@@ -1,10 +1,10 @@
 "use server";
 
-import { doFetch } from "@/lib/api/fetch";
+import { doFetchJson } from "@/lib/api/fetch";
+import { toActionState } from "@/lib/actions/to-action-state";
 import { tags } from "@/lib/api/memberships";
 import { getSession } from "@/lib/auth/session";
 import { revalidateTag } from "next/cache";
-import { redirect } from "next/navigation";
 import z, { treeifyError } from "zod";
 
 const createOrganizationSchema = z.object({
@@ -46,26 +46,15 @@ export const createOrganizationAction = async (
     };
   }
 
-  let organizationId;
-
   try {
-    const response = await doFetch("/organization?onboarding=false", {
+    await doFetchJson("/organization?onboarding=false", {
       method: "POST",
       body: JSON.stringify(parsed.data),
     });
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => {});
-
-      return { status: "error", message: data.message ?? "Datos inválidos" };
-    }
-
     revalidateTag(tags.memberships());
     return { status: "success" };
   } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Ha ocurrido un error",
-    };
+    return toActionState(error);
   }
 };

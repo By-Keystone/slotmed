@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/common/form";
 import { toast } from "@/lib/toast";
 
 export interface BookingPatient {
@@ -71,55 +72,13 @@ export function PatientStep({
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Nombre
-            </label>
-            <input
-              id="name"
-              name="name"
-              required
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-              Apellido
-            </label>
-            <input
-              id="lastName"
-              name="lastName"
-              required
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
+          <Input label="Nombre" name="name" required />
+          <Input label="Apellido" name="lastName" required />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="phone" className="text-sm font-medium text-gray-700">
-            Teléfono
-          </label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            required
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
+        <Input label="Teléfono" name="phone" type="tel" required />
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className="text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
+        <Input label="Email" name="email" type="email" required />
 
         <div className="mt-2 flex gap-3">
           <Button

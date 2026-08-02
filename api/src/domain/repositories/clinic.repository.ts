@@ -12,5 +12,5 @@ export interface CreateClinicData {
 export interface IClinicRepository {
   save(data: CreateClinicData): Promise<Clinic>;
   update(id: string, data: Partial<Clinic>): Promise<Clinic>;
-  get(): Promise<Clinic[]>;
+  get(accountId: string): Promise<Clinic[]>;
 }

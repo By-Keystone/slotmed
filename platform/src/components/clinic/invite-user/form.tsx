@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Input } from "@/components/common/form/input";
+import { useRef, useState, useTransition } from "react";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input, Select } from "@/components/common/form";
 import { Specialty } from "@/lib/api/specialty/types";
 import {
   LookedUpUser,
@@ -24,6 +26,8 @@ interface Props {
   action: (formData: FormData) => void;
   organizationId: string;
   specialties: Specialty[];
+  isPending: boolean;
+  onCancel: () => void;
   fieldErrors?: FieldErrors<InviteUserFields>;
 }
 
@@ -32,22 +36,35 @@ export const InviteUserForm = ({
   action,
   organizationId,
   specialties,
+  isPending,
+  onCancel,
   fieldErrors,
 }: Props) => {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [step, setStep] = useState<"email" | "details">("email");
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [role, setRole] = useState<"USER" | "DOCTOR">("USER");
   const [existingUser, setExistingUser] = useState<LookedUpUser | null>(null);
   const [isLookingUp, startLookup] = useTransition();
 
-  const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const email = e.target.value.trim();
-    if (!email) {
-      setExistingUser(null);
+  // Paso 1 → 2: verifica el correo (con feedback visible) y precarga datos.
+  const handleContinue = () => {
+    const value = (
+      (new FormData(formRef.current!).get("email") as string) ?? ""
+    ).trim();
+
+    if (!value || !value.includes("@")) {
+      setEmailError("Ingresa un correo electrónico válido");
       return;
     }
 
+    setEmailError(null);
+    setEmail(value);
     startLookup(async () => {
-      const user = await lookupUserByEmailAction(email);
+      const user = await lookupUserByEmailAction(value);
       setExistingUser(user);
+      setStep("details");
     });
   };
 
@@ -57,74 +74,132 @@ export const InviteUserForm = ({
   };
 
   return (
-    <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-y-3">
-      <div className="flex flex-col gap-y-1">
-        <label htmlFor="email">Correo electrónico</label>
-        <Input
-          name="email"
-          onBlur={handleEmailBlur}
-          error={fieldError(fieldErrors, "email")}
-        />
-        {isLookingUp && (
-          <p className="text-xs text-gray-400">Buscando usuario...</p>
-        )}
-        {existingUser && (
-          <p className="text-xs text-blue-600">
-            Usuario existente: {existingUser.name} {existingUser.lastName}
+    <form
+      ref={formRef}
+      id={formId}
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-y-3"
+    >
+      {step === "email" ? (
+        <>
+          <Input
+            label="Correo electrónico"
+            name="email"
+            type="email"
+            value={email}
+            placeholder="usuario@correo.com"
+            autoFocus
+            error={emailError ?? undefined}
+          />
+          <p className="text-xs text-gray-400">
+            Verificaremos si ya tiene una cuenta para precargar sus datos.
           </p>
-        )}
-      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-y-1">
-          <label htmlFor="name">Nombre</label>
+          <div className="mt-2 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isLookingUp}
+            >
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleContinue} disabled={isLookingUp}>
+              {isLookingUp ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verificando...
+                </>
+              ) : (
+                "Continuar"
+              )}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* El correo ya no se edita aquí; viaja en un hidden dentro del form. */}
+          <input type="hidden" name="email" value={email} />
+          <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
+            <span className="truncate text-gray-700">{email}</span>
+            <button
+              type="button"
+              onClick={() => setStep("email")}
+              className="ml-2 shrink-0 text-xs font-medium text-blue-600 hover:text-blue-700"
+            >
+              Cambiar
+            </button>
+          </div>
+
+          <div
+            className={`rounded-lg px-3 py-2 text-xs ${
+              existingUser
+                ? "bg-blue-50 text-blue-700"
+                : "bg-gray-50 text-gray-500"
+            }`}
+          >
+            {existingUser
+              ? "Ya tiene una cuenta — precargamos sus datos."
+              : "Usuario nuevo — completa sus datos."}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              key={`name-${existingUser?.id ?? "new"}`}
+              label="Nombre"
+              name="name"
+              value={existingUser?.name}
+              error={fieldError(fieldErrors, "name")}
+            />
+            <Input
+              key={`lastName-${existingUser?.id ?? "new"}`}
+              label="Apellido"
+              name="lastName"
+              value={existingUser?.lastName}
+              error={fieldError(fieldErrors, "lastName")}
+            />
+          </div>
+
           <Input
-            key={`name-${existingUser?.id ?? "new"}`}
-            name="name"
-            value={existingUser?.name}
-            error={fieldError(fieldErrors, "name")}
+            key={`phone-${existingUser?.id ?? "new"}`}
+            label="Teléfono"
+            name="phone"
+            value={existingUser?.phone}
+            error={fieldError(fieldErrors, "phone")}
           />
-        </div>
-        <div className="flex flex-col gap-y-1">
-          <label htmlFor="lastName">Apellido</label>
-          <Input
-            key={`lastName-${existingUser?.id ?? "new"}`}
-            name="lastName"
-            value={existingUser?.lastName}
-            error={fieldError(fieldErrors, "lastName")}
+
+          <Select
+            label="Rol"
+            name="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value as "USER" | "DOCTOR")}
+            options={[
+              { label: "Usuario", value: "USER" },
+              { label: "Doctor", value: "DOCTOR" },
+            ]}
           />
-        </div>
-      </div>
 
-      <div className="flex flex-col gap-y-1">
-        <label htmlFor="phone">Teléfono</label>
-        <Input
-          key={`phone-${existingUser?.id ?? "new"}`}
-          name="phone"
-          value={existingUser?.phone}
-          error={fieldError(fieldErrors, "phone")}
-        />
-      </div>
+          {role === "DOCTOR" && (
+            <SpecialtyMultiSelect
+              organizationId={organizationId}
+              initialSpecialties={specialties}
+            />
+          )}
 
-      <div className="flex flex-col gap-y-1">
-        <label htmlFor="role">Rol</label>
-        <select
-          id="role"
-          name="role"
-          value={role}
-          onChange={(e) => setRole(e.target.value as "USER" | "DOCTOR")}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-        >
-          <option value="USER">Usuario</option>
-          <option value="DOCTOR">Doctor</option>
-        </select>
-      </div>
-
-      {role === "DOCTOR" && (
-        <SpecialtyMultiSelect
-          organizationId={organizationId}
-          initialSpecialties={specialties}
-        />
+          <div className="mt-2 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setStep("email")}
+              disabled={isPending}
+            >
+              Atrás
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Enviando..." : "Enviar invitación"}
+            </Button>
+          </div>
+        </>
       )}
     </form>
   );

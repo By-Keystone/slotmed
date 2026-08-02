@@ -7,10 +7,23 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth/client";
 
-export function LoginForm() {
+interface Props {
+  /** Ruta a la que volver tras iniciar sesión (la que el usuario intentaba abrir). */
+  callbackUrl?: string;
+}
+
+// Solo aceptamos rutas internas relativas para evitar open-redirect.
+function safeInternalPath(path?: string): string | null {
+  if (!path) return null;
+  return path.startsWith("/") && !path.startsWith("//") ? path : null;
+}
+
+export function LoginForm({ callbackUrl }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  const callback = safeInternalPath(callbackUrl);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -31,12 +44,13 @@ export function LoginForm() {
       return;
     }
 
-    // Sin cuenta todavía → onboarding; si ya tiene, a su panel.
+    // Sin cuenta todavía → onboarding; si ya tiene, a donde intentaba ir
+    // (callbackUrl) o a su selector de recursos.
     if (!data?.user?.accountId) {
       router.push("/onboarding");
       return;
     }
-    router.push(`/account/${data.user.accountId}/select`);
+    router.push(callback ?? `/account/${data.user.accountId}/select`);
   }
 
   return (

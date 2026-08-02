@@ -19,6 +19,7 @@ import {
 import { GetClinicsUseCase } from "@/application/use-cases/clinic/get-clinics.usecase";
 import { IClinicRepository } from "@/domain/repositories/clinic.repository";
 import { GetClinicUsersQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-users.query";
+import { policy } from "@/plugins/policy";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
 
@@ -32,14 +33,17 @@ export default async function clinicRoutes(
 ) {
   const { clinicRepository } = opts;
 
-  fastify.addHook("preHandler", fastify.requireAccount);
-  fastify.addHook("preHandler", fastify.authorize);
-
   const app = fastify.withTypeProvider<ZodTypeProvider>();
 
+  // La clínica cuelga de una organización que llega en el cuerpo, no en la URL,
+  // así que `checkResource` no aplica: que esa organización sea de la cuenta del
+  // usuario lo garantiza el repositorio.
   app.post(
     "/clinic",
-    { schema: { body: createClinicSchema } },
+    {
+      schema: { body: createClinicSchema },
+      ...policy({ account: true, confirmed: true, onboarded: true }),
+    },
     async (request, reply) => {
       try {
         const useCase = new CreateClinicUseCase(clinicRepository);
@@ -63,25 +67,39 @@ export default async function clinicRoutes(
     },
   );
 
-  app.get("/clinic", async (request, reply) => {
-    try {
-      const useCase = new GetClinicsUseCase(clinicRepository);
+  app.get(
+    "/clinic",
+    { ...policy({ account: true, confirmed: true, onboarded: true }) },
+    async (request, reply) => {
+      try {
+        const useCase = new GetClinicsUseCase(clinicRepository);
 
-      const result = await useCase.execute();
+        const result = await useCase.execute(request.user.accountId!);
 
-      return reply.status(200).send(result);
-    } catch (error) {
-      console.error(`An error occurred when getting clinics: ${error}`);
+        return reply.status(200).send(result);
+      } catch (error) {
+        console.error(`An error occurred when getting clinics: ${error}`);
 
-      return reply.internalServerError(
-        "An error occurredn when getting clinics",
-      );
-    }
-  });
+        return reply.internalServerError(
+          "An error occurredn when getting clinics",
+        );
+      }
+    },
+  );
 
+  // `roles` resuelve la membership sobre el `:resourceId` de la URL, así que
+  // cubre a la vez el rol y que la clínica sea de la cuenta del usuario.
   app.get(
     "/clinic/:resourceId/users",
-    { schema: { params: getClinicUsersSchema } },
+    {
+      schema: { params: getClinicUsersSchema },
+      ...policy({
+        account: true,
+        confirmed: true,
+        onboarded: true,
+        roles: ["ADMIN"],
+      }),
+    },
     async (request, reply) => {
       try {
         const query = new GetClinicUsersQuery();
@@ -100,15 +118,25 @@ export default async function clinicRoutes(
     },
   );
 
+  // El doctor consulta su propia disponibilidad en una clínica: basta con que
+  // tenga membership sobre ella, sea del rol que sea.
   app.get(
-    "/clinic/:clinicId/availability",
-    { schema: { params: getDoctorAvailabilityParamsSchema } },
+    "/clinic/:resourceId/availability",
+    {
+      schema: { params: getDoctorAvailabilityParamsSchema },
+      ...policy({
+        account: true,
+        confirmed: true,
+        onboarded: true,
+        checkResource: true,
+      }),
+    },
     async (request, reply) => {
       try {
         const useCase = new GetDoctorAvailabilityUseCase();
 
         const dto: GetDoctorAvailabilityDto = {
-          clinicId: request.params.clinicId,
+          clinicId: request.params.resourceId,
           userId: request.user.userId,
         };
 
@@ -133,19 +161,25 @@ export default async function clinicRoutes(
   );
 
   app.put(
-    "/clinic/:clinicId/availability",
+    "/clinic/:resourceId/availability",
     {
       schema: {
         params: insertAvailabilityParamsSchema,
         body: insertAvailabilityBodySchema,
       },
+      ...policy({
+        account: true,
+        confirmed: true,
+        onboarded: true,
+        roles: ["ADMIN", "DOCTOR"],
+      }),
     },
     async (request, reply) => {
       try {
         const usecase = new InsertAvailabilityUseCase();
 
         const dto: InsertAvailabilityDto = {
-          clinicId: request.params.clinicId,
+          clinicId: request.params.resourceId,
           userId: request.user.userId,
           availabilities: request.body.availabilities,
         };
@@ -155,7 +189,12 @@ export default async function clinicRoutes(
         return reply
           .status(201)
           .send({ message: "Availabilities created successfully" });
-      } catch (error) { }
+      } catch (error) {
+        console.error("Error saving availability:", { error });
+        return reply.status(500).send({
+          message: "Error saving your availability",
+        });
+      }
     },
   );
 }

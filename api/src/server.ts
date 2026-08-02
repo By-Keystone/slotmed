@@ -8,7 +8,7 @@ import {
   validatorCompiler,
 } from "@fastify/type-provider-zod";
 import authPlugin from "./plugins/auth";
-import authorizationPlugin from "./plugins/authorization";
+import policyPlugin, { policy } from "./plugins/policy";
 import { PrismaUserRepository } from "./infrastructure/postgres/repositories/user.repository";
 import { SESEmailService } from "./infrastructure/services/email-service/ses.service";
 import { ClinicRepository } from "./infrastructure/postgres/repositories/clinic.repository";
@@ -67,13 +67,19 @@ async function start() {
   await fastify.register(cookie);
   await fastify.register(sensible);
   await fastify.register(authPlugin);
-  await fastify.register(authorizationPlugin, {
+  await fastify.register(policyPlugin, {
     userRepository,
   });
+
+  // Hook global: toda ruta registrada a partir de aquí pasa por la política.
+  // Una ruta sin `policy({...})` responde 401, así que olvidarla la cierra en
+  // lugar de dejarla abierta.
+  fastify.addHook("preHandler", fastify.enforcePolicy);
 
   fastify.route({
     method: ["GET", "POST"],
     url: "/api/auth/*",
+    ...policy({ public: true }),
     async handler(request, reply) {
       try {
         // Construct request URL
@@ -140,7 +146,9 @@ async function start() {
     prefix: "/appointment",
   });
 
-  fastify.get("/health", async () => ({ status: "ok" }));
+  fastify.get("/health", { ...policy({ public: true }) }, async () => ({
+    status: "ok",
+  }));
 
   const port = Number(process.env.PORT) || 4000;
   const host = process.env.HOST || "0.0.0.0";

@@ -1,11 +1,13 @@
 import { getClient } from "@/infrastructure/postgres/transaction-context";
 import z from "zod";
 
+// El parámetro se llama `resourceId` por convención: es el nombre que busca
+// `checkResource` en la política. La URL no cambia.
 export const getSpecialtiesParamSchema = z.object({
-    organizationId: z.string({ error: "Organization ID is required" })
+    resourceId: z.string({ error: "Organization ID is required" })
 })
 
-export type GetSpecialtiesDto = z.infer<typeof getSpecialtiesParamSchema>;
+export type GetSpecialtiesDto = { organizationId: string };
 
 export class GetSpecialtiesUseCase {
     constructor() { }

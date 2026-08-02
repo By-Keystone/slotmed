@@ -2,11 +2,12 @@ import { CreateApointmentUseCase, createAppointmentSchema } from "@/application/
 import { Prisma } from "@prisma/client";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
+import { policy } from "@/plugins/policy";
 
 export default async function appointmentRoutes(fastify: FastifyInstance) {
     const app = fastify.withTypeProvider<ZodTypeProvider>();
 
-    app.post('', { schema: { body: createAppointmentSchema } }, async (request, reply) => {
+    app.post('', { schema: { body: createAppointmentSchema }, ...policy({ public: true }) }, async (request, reply) => {
         try {
             const command = new CreateApointmentUseCase();
 

@@ -7,12 +7,15 @@ export const createSpecialtyBodySchema = z.object({
   name: z.string({ error: "Specialty name is required" }),
 });
 
+// El parámetro se llama `resourceId` por convención: es el nombre que busca
+// `checkResource` en la política. La URL no cambia.
 export const createSpecialtyParamsSchema = z.object({
-  organizationId: z.string(),
+  resourceId: z.string(),
 });
 
-export type CreateSpecialtyDto = z.infer<typeof createSpecialtyBodySchema> &
-  z.infer<typeof createSpecialtyParamsSchema>;
+export type CreateSpecialtyDto = z.infer<typeof createSpecialtyBodySchema> & {
+  organizationId: string;
+};
 
 export class CreateSpecialtyUseCase {
   constructor() { }

@@ -1,7 +1,8 @@
 "use server";
 
 import { tags } from "@/lib/api/specialty";
-import { doFetch } from "@/lib/api/fetch";
+import { doFetchJson } from "@/lib/api/fetch";
+import { toActionState } from "@/lib/actions/to-action-state";
 import { getSession } from "@/lib/auth/session";
 import { revalidateTag } from "next/cache";
 import z, { treeifyError } from "zod";
@@ -47,28 +48,14 @@ export async function updateSpecialtyAction(
   }
 
   try {
-    const response = await doFetch(
-      `/${organizationId}/specialty/${specialtyId}`,
-      {
-        method: "PUT",
-        body: JSON.stringify(parsed.data),
-      },
-    );
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      return {
-        status: "error",
-        message: payload?.message ?? "No se pudo actualizar la especialidad",
-      };
-    }
+    await doFetchJson(`/${organizationId}/specialty/${specialtyId}`, {
+      method: "PUT",
+      body: JSON.stringify(parsed.data),
+    });
 
     revalidateTag(tags.organizationSpecialties(organizationId));
     return { status: "success" };
   } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Ha ocurrido un error",
-    };
+    return toActionState(error);
   }
 }

@@ -1,29 +1,30 @@
-import { InputHTMLAttributes } from "react";
+import { SelectHTMLAttributes } from "react";
 import { Field } from "./field";
 
-interface Props
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "defaultValue"> {
-  name: string;
-  value?: string;
-  label?: string;
-  /** Mensaje de error de validación para este campo (se pinta debajo del input). */
-  error?: string;
+interface Option {
+  label: string;
+  value: string;
 }
 
-export const Input = ({
+interface Props extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "id"> {
+  name: string;
+  label?: string;
+  error?: string;
+  options: Option[];
+}
+
+export const Select = ({
   name,
-  value,
   label,
   error,
+  options,
   className,
   ...rest
 }: Props) => (
   <Field label={label} htmlFor={name} error={error}>
-    <input
-      type="text"
+    <select
       id={name}
       name={name}
-      defaultValue={value}
       aria-invalid={error ? true : undefined}
       className={`rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 ${
         error
@@ -31,6 +32,12 @@ export const Input = ({
           : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
       } ${className ?? ""}`}
       {...rest}
-    />
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   </Field>
 );

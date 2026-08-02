@@ -11,15 +11,7 @@ const PUBLIC_PATHS = [
 ];
 
 // Rutas públicas con segmentos dinámicos, que no calzan con match exacto.
-const PUBLIC_PATH_PATTERNS = [
-  /^\/clinic\/[^/]+\/create-appointment$/,
-  // Fetch client-side del wizard (disponibilidad del doctor). El middleware
-  // corre antes de que Next resuelva next.config.ts `rewrites()`, así que
-  // sin este bypass el fetch anónimo queda redirigido a /login.
-  /^\/api\/doctor-profile\//,
-  // Confirmar reserva (POST anónimo al crear la cita).
-  /^\/api\/appointment$/,
-];
+const PUBLIC_PATH_PATTERNS = [/^\/clinic\/[^/]+\/create-appointment$/];
 
 function isPublicPath(pathname: string) {
   return (

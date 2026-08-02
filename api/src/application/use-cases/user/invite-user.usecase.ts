@@ -60,8 +60,14 @@ export class InviteUserUseCase {
       });
 
 
+      // El recurso llega en el cuerpo de la petición, así que se acota a la
+      // cuenta del invitador: sin este filtro se podría invitar gente a una
+      // clínica de otra cuenta.
       const resource = await client.clinic.findFirst({
-        where: { resourceId: data.resourceId },
+        where: {
+          resourceId: data.resourceId,
+          resource: { accountId: data.accountId },
+        },
       });
 
       if (!resource) {

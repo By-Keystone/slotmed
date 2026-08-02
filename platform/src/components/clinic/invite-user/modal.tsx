@@ -1,11 +1,9 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -67,17 +65,15 @@ export const InviteUserModal = ({ isOpen, setIsOpen, specialties }: Props) => {
           <DialogTitle>Invitar usuario</DialogTitle>
         </DialogHeader>
         <InviteUserForm
+          key={isOpen ? "open" : "closed"}
           formId={FORM_ID}
           action={submit}
           organizationId={resourceId}
           specialties={specialties}
           fieldErrors={fieldErrors}
+          isPending={isPending}
+          onCancel={() => setIsOpen(false)}
         />
-        <DialogFooter>
-          <Button form={FORM_ID} type="submit" disabled={isPending}>
-            {isPending ? "Enviando..." : "Enviar invitación"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

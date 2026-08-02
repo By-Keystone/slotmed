@@ -1,6 +1,6 @@
 import "server-only";
 
-const API_URL = process.env.API_URL;
+import { doFetchJson } from "../fetch";
 
 /** Paso que el usuario debe seguir tras aceptar la invitación. */
 export type InvitationStep = "set_password" | "login";
@@ -18,12 +18,11 @@ export async function getInvitation(
   token: string,
 ): Promise<InvitationDetails | null> {
   try {
-    const res = await fetch(`${API_URL}/invitations/${token}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.data as InvitationDetails;
+    const { data } = await doFetchJson<{ data: InvitationDetails }>(
+      `/invitations/${token}`,
+      { cache: "no-store" },
+    );
+    return data;
   } catch {
     return null;
   }

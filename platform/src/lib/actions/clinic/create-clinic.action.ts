@@ -1,7 +1,8 @@
 "use server";
 
 import { tags } from "@/lib/api/clinic";
-import { doFetch } from "@/lib/api/fetch";
+import { doFetchJson } from "@/lib/api/fetch";
+import { toActionState } from "@/lib/actions/to-action-state";
 import { getSession } from "@/lib/auth/session";
 import { revalidateTag } from "next/cache";
 import z, { treeifyError } from "zod";
@@ -50,25 +51,14 @@ export async function createClinicAction(
   }
 
   try {
-    const response = await doFetch("/clinic", {
+    await doFetchJson("/clinic", {
       method: "POST",
       body: JSON.stringify({ ...parsed.data, organizationId }),
     });
 
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      return {
-        status: "error",
-        message: payload?.message ?? "No se pudo crear la clínica",
-      };
-    }
-
     revalidateTag(tags.organizationClinics(organizationId));
     return { status: "success" };
   } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Ha ocurrido un error",
-    };
+    return toActionState(error);
   }
 }
