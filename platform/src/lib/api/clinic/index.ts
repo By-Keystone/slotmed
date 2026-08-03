@@ -1,5 +1,10 @@
 import { doFetchJson } from "../fetch";
-import { ClinicUser, ClinicWithUser } from "./types";
+import {
+  ClinicAppointment,
+  ClinicMetrics,
+  ClinicUser,
+  ClinicWithUser,
+} from "./types";
 
 export const tags = {
   organizationClinics: (organizationId: string) =>
@@ -8,9 +13,7 @@ export const tags = {
 };
 
 export const clinicApi = {
-  getOrganizationClinics: (
-    organizationId: string,
-  ): Promise<ClinicWithUser[]> =>
+  getOrganizationClinics: (organizationId: string): Promise<ClinicWithUser[]> =>
     doFetchJson(`/organization/${organizationId}/clinics`, {
       method: "GET",
       next: { tags: [tags.organizationClinics(organizationId)] },
@@ -19,5 +22,14 @@ export const clinicApi = {
     doFetchJson(`/clinic/${clinicId}/users`, {
       method: "GET",
       next: { tags: [tags.clinicUsers(clinicId)] },
+    }),
+  getMetrics: (clinicId: string): Promise<ClinicMetrics> =>
+    doFetchJson(`/clinic/${clinicId}/metrics`, {
+      method: "GET",
+      next: { revalidate: 60 },
+    }),
+  getTodayAppointments: (clinicId: string): Promise<ClinicAppointment[]> =>
+    doFetchJson(`/clinic/${clinicId}/appointments/today`, {
+      method: "GET",
     }),
 };

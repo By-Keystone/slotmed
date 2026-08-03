@@ -35,5 +35,5 @@ export default async function CreateAppointmentPage({ params }: Props) {
     );
   }
 
-  return <BookingWizard doctors={doctors} />;
+  return <BookingWizard doctors={doctors} clinicId={clinicId} />;
 }

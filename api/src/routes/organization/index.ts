@@ -200,7 +200,7 @@ export default async function organizationRoutes(
         account: true,
         confirmed: true,
         onboarded: true,
-        checkResource: true,
+        member: true,
       }),
     },
     async (request, reply) => {

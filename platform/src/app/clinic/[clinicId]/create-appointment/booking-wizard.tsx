@@ -19,15 +19,17 @@ interface Specialty {
 
 interface Props {
   doctors: ClinicDoctor[];
+  clinicId: string;
 }
 
-export function BookingWizard({ doctors }: Props) {
+export function BookingWizard({ doctors, clinicId }: Props) {
   const [step, setStep] = useState(1);
   const [specialty, setSpecialty] = useState<Specialty | null>(null);
   const [doctor, setDoctor] = useState<ClinicDoctor | null>(null);
-  const [dateTime, setDateTime] = useState<{ date: string; time: string } | null>(
-    null,
-  );
+  const [dateTime, setDateTime] = useState<{
+    date: string;
+    time: string;
+  } | null>(null);
   const [patient, setPatient] = useState<BookingPatient | null>(null);
 
   const specialties = useMemo(() => {
@@ -98,11 +100,12 @@ export function BookingWizard({ doctors }: Props) {
                   scheduledAt: new Date(
                     `${dateTime.date}T${dateTime.time}:00`,
                   ).toISOString(),
-                  durationMinutes: String(SLOT_DURATION_MINUTES),
+                  durationMinutes: SLOT_DURATION_MINUTES,
                   patientName: p.name,
                   patientLastName: p.lastName,
                   patientPhone: p.phone,
                   patientEmail: p.email,
+                  clinicId,
                 });
 
                 if (result.status !== "success") {
