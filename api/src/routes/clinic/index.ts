@@ -1,4 +1,5 @@
 import { NotFound } from "@/application/errors/not-found.error";
+import { getClinicMetricsParamsSchema } from "@/application/queries/clinic/get-clinic-metrics.query";
 import { getClinicUsersSchema } from "@/application/queries/clinic/get-clinic-users.query";
 import {
   GetDoctorAvailabilityDto,
@@ -18,8 +19,9 @@ import {
 } from "@/application/use-cases/clinic/create-clinic.usecase";
 import { GetClinicsUseCase } from "@/application/use-cases/clinic/get-clinics.usecase";
 import { IClinicRepository } from "@/domain/repositories/clinic.repository";
+import { GetClinicMetricsQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-metrics.query";
 import { GetClinicUsersQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-users.query";
-import { policy } from "@/plugins/policy";
+import { policy, requireMembership } from "@/plugins/policy";
 import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
 
@@ -128,7 +130,7 @@ export default async function clinicRoutes(
         account: true,
         confirmed: true,
         onboarded: true,
-        checkResource: true,
+        member: true,
       }),
     },
     async (request, reply) => {
@@ -194,6 +196,41 @@ export default async function clinicRoutes(
         return reply.status(500).send({
           message: "Error saving your availability",
         });
+      }
+    },
+  );
+
+  app.get(
+    "/clinic/:resourceId/metrics",
+    {
+      schema: { params: getClinicMetricsParamsSchema },
+      ...policy({
+        confirmed: true,
+        onboarded: true,
+        account: true,
+        member: true,
+        roles: "*",
+      }),
+    },
+    async (request, reply) => {
+      const membership = requireMembership(request);
+
+      try {
+        const query = new GetClinicMetricsQuery();
+
+        const result = await query.execute({
+          resourceId: request.params.resourceId,
+          role: membership.role,
+          userId: request.user.userId,
+        });
+
+        return reply.status(200).send(result);
+      } catch (error) {
+        console.error("Error ocurred getting metrics:", error);
+
+        return reply.internalServerError(
+          "An error occurred when getting metrics",
+        );
       }
     },
   );

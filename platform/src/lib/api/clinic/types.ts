@@ -20,3 +20,9 @@ export type ClinicUser = {
   phone: string;
   role: string;
 };
+
+export type ClinicMetrics = {
+  appointments: number;
+  doctors?: number;
+  memberships?: number;
+};

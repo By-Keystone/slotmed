@@ -1,5 +1,4 @@
 import type { UserMembership } from "@/application/queries/membership/get-user-membership.query";
-import type { User } from "@/domain/entities/user/entity";
 import type { MembershipRole } from "@/domain/enums/membership-role";
 import type { IUserRepository } from "@/domain/repositories/user.repository";
 import { GetUserMembership } from "@/infrastructure/postgres/queries/membership/get-user-membership.query";
@@ -27,21 +26,25 @@ export interface Policy {
   /** Exige onboarding completado. */
   onboarded?: boolean;
   /**
-   * Comprueba que el usuario tenga membership sobre el recurso de la petición,
-   * que se lee siempre de `params.resourceId`. La busca por
-   * `(userId, resourceId)`, así que un recurso de otra cuenta no devuelve nada
-   * y la petición no pasa.
+   * Exige que el usuario sea miembro del recurso de la petición, con el rol que
+   * sea. El recurso se lee siempre de `params.resourceId` y la membership se
+   * busca por `(userId, resourceId)`, así que un recurso de otra cuenta no
+   * devuelve nada y la petición no pasa.
    *
    * Las rutas que operan sobre un recurso deben nombrar así su parámetro; el
    * nombre del placeholder no forma parte de la URL, así que renombrarlo no
    * afecta a quien consume la API.
    */
-  checkResource?: boolean;
+  member?: boolean;
   /**
-   * Roles aceptados sobre ese recurso. Implica `checkResource`, porque el rol
-   * sale de la membership que resuelve esa comprobación.
+   * Restringe a estos roles sobre el recurso. Implica `member`, porque el rol
+   * sale de esa misma membership.
+   *
+   * `"*"` acepta cualquier rol y equivale a declarar sólo `member: true`; sirve
+   * para dejar por escrito que la ruta es de acceso abierto a los miembros, en
+   * vez de que se lea como un `roles` que alguien olvidó poner.
    */
-  roles?: MembershipRole[];
+  roles?: MembershipRole[] | "*";
 }
 
 declare module "fastify" {
@@ -54,7 +57,11 @@ declare module "fastify" {
   }
 
   interface FastifyRequest {
-    /** Membership resuelta por la regla `membership`, para reusar en el handler. */
+    /**
+     * Membership sobre `params.resourceId`, resuelta por `member`/`roles`.
+     * Queda `undefined` en las rutas cuya política no la resuelve: para leerla
+     * en un handler, usa `requireMembership(request)`.
+     */
     membership?: UserMembership;
   }
 }
@@ -65,99 +72,34 @@ declare module "fastify" {
  * ```ts
  * app.get("/clinic/:resourceId/users", {
  *   schema: { params: getClinicUsersSchema },
- *   preHandler: [fastify.enforcePolicy],
- *   ...policy({ account: true, membership: { roles: ["ADMIN"], param: "resourceId" } }),
+ *   ...policy({ account: true, confirmed: true, roles: ["ADMIN"] }),
  * }, handler)
  * ```
+ *
+ * El hook global de `server.ts` la aplica; la ruta no declara `preHandler`.
  */
 export function policy(p: Policy) {
   return { config: { policy: p } };
 }
 
-interface PolicyContext {
-  request: FastifyRequest;
-  policy: Policy;
-  fastify: FastifyInstance;
-  /** Carga el usuario de BD una sola vez por petición. */
-  loadUser: () => Promise<User>;
-}
-
-interface PolicyRule {
-  name: string;
-  /** Si esta política activa la regla. */
-  applies: (policy: Policy) => boolean;
-  /** Lanza un error HTTP si no se cumple. */
-  check: (ctx: PolicyContext) => Promise<void>;
-}
-
-const accountRule: PolicyRule = {
-  name: "account",
-  applies: (policy) => policy.account === true,
-  check: async ({ request, fastify }) => {
-    if (!request.user.accountId) {
-      throw fastify.httpErrors.forbidden("No account associated with user");
-    }
-  },
-};
-
-const userStateRule: PolicyRule = {
-  name: "user-state",
-  applies: (policy) => policy.confirmed === true || policy.onboarded === true,
-  check: async ({ policy, fastify, loadUser }) => {
-    const user = await loadUser();
-
-    if (policy.confirmed && !user.confirmed) {
-      throw fastify.httpErrors.forbidden("Email not confirmed");
-    }
-
-    if (policy.onboarded && !user.onboardingCompleted) {
-      throw fastify.httpErrors.forbidden("Onboarding not completed");
-    }
-  },
-};
-
-const resourceRule: PolicyRule = {
-  name: "resource",
-  applies: (policy) => policy.checkResource === true || policy.roles !== undefined,
-  check: async ({ request, policy, fastify }) => {
-    const params = request.params as Record<string, unknown> | undefined;
-    const resourceId = params?.resourceId;
-
-    if (typeof resourceId !== "string" || !resourceId) {
-      // La ruta declara la comprobación pero no expone `:resourceId`: error
-      // nuestro, no del cliente. Fallamos cerrado en lugar de saltárnosla.
-      request.log.error(
-        { url: request.url },
-        "Policy declares checkResource but the route has no :resourceId param",
-      );
-      throw fastify.httpErrors.internalServerError("Misconfigured route policy");
-    }
-
-    const membership = await new GetUserMembership().execute({
-      userId: request.user.userId,
-      resourceId,
-    });
-
-    // Sin membership no distinguimos "no existe" de "existe pero es de otra
-    // cuenta": 404 en ambos casos, para no revelar qué recursos hay en otras
-    // cuentas.
-    if (!membership) {
-      throw fastify.httpErrors.notFound("Resource not found");
-    }
-
-    if (policy.roles && !policy.roles.includes(membership.role)) {
-      throw fastify.httpErrors.forbidden("Insufficient role on this resource");
-    }
-
-    request.membership = membership;
-  },
-};
-
 /**
- * Orden de evaluación. Para añadir una comprobación nueva: se agrega el campo
- * a `Policy` y su regla a esta lista. Las rutas que no lo declaren no cambian.
+ * Devuelve la membership que resolvió la política de la ruta, ya con tipo
+ * no-opcional. Si falta es que la ruta no declaró `member`/`roles`: error de
+ * configuración nuestro, no del cliente.
  */
-const rules: PolicyRule[] = [accountRule, userStateRule, resourceRule];
+export function requireMembership(request: FastifyRequest): UserMembership {
+  if (!request.membership) {
+    request.log.error(
+      { url: request.url },
+      "Handler reads membership but the route policy does not resolve it",
+    );
+    throw request.server.httpErrors.internalServerError(
+      "Misconfigured route policy",
+    );
+  }
+
+  return request.membership;
+}
 
 export interface PolicyPluginOptions {
   userRepository: IUserRepository;
@@ -192,22 +134,64 @@ async function policyPlugin(
       await fastify.authenticate(request);
     }
 
-    let cached: User | undefined;
-    const loadUser = async () => {
-      if (!cached) {
-        const user = await userRepository.findById(request.user.userId);
-        if (!user) {
-          throw fastify.httpErrors.unauthorized("User not found");
-        }
-        cached = user;
-      }
-      return cached;
-    };
+    if (declared.account && !request.user.accountId) {
+      throw fastify.httpErrors.forbidden("No account associated with user");
+    }
 
-    for (const rule of rules) {
-      if (rule.applies(declared)) {
-        await rule.check({ request, policy: declared, fastify, loadUser });
+    if (declared.confirmed || declared.onboarded) {
+      const user = await userRepository.findById(request.user.userId);
+
+      if (!user) {
+        throw fastify.httpErrors.unauthorized("User not found");
       }
+
+      if (declared.confirmed && !user.confirmed) {
+        throw fastify.httpErrors.forbidden("Email not confirmed");
+      }
+
+      if (declared.onboarded && !user.onboardingCompleted) {
+        throw fastify.httpErrors.forbidden("Onboarding not completed");
+      }
+    }
+
+    if (declared.member || declared.roles) {
+      const { resourceId } = (request.params ?? {}) as { resourceId?: string };
+
+      if (!resourceId) {
+        // La ruta declara la comprobación pero no expone `:resourceId`: error
+        // nuestro, no del cliente. Fallamos cerrado en lugar de saltárnosla.
+        request.log.error(
+          { url: request.url },
+          "Policy declares member/roles but the route has no :resourceId param",
+        );
+        throw fastify.httpErrors.internalServerError(
+          "Misconfigured route policy",
+        );
+      }
+
+      const membership = await new GetUserMembership().execute({
+        userId: request.user.userId,
+        resourceId,
+      });
+
+      // Sin membership no distinguimos "no existe" de "existe pero es de otra
+      // cuenta": 404 en ambos casos, para no revelar qué recursos hay en otras
+      // cuentas.
+      if (!membership) {
+        throw fastify.httpErrors.notFound("Resource not found");
+      }
+
+      if (
+        declared.roles &&
+        declared.roles !== "*" &&
+        !declared.roles.includes(membership.role)
+      ) {
+        throw fastify.httpErrors.forbidden(
+          "Insufficient role on this resource",
+        );
+      }
+
+      request.membership = membership;
     }
   });
 }
