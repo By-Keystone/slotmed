@@ -26,3 +26,29 @@ export type ClinicMetrics = {
   doctors?: number;
   memberships?: number;
 };
+
+export type AppointmentStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "CANCELLED"
+  | "COMPLETED"
+  | "NO_SHOW";
+
+/**
+ * Cita de la agenda del día. Un DOCTOR sólo recibe las suyas; el resto de
+ * miembros, las de toda la clínica.
+ */
+export type ClinicAppointment = {
+  id: string;
+  scheduledAt: string; // ISO
+  durationMinutes: number;
+  status: AppointmentStatus;
+  specialty: string;
+  patientName: string;
+  patientLastName: string;
+  patientPhone: string;
+  doctor: {
+    name: string;
+    lastName: string;
+  };
+};

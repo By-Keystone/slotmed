@@ -31,13 +31,15 @@ export default async function doctorProfileRoutes(fastify: FastifyInstance) {
           error,
         );
 
-        return reply
-          .status(500)
-          .send({
-            message:
-              "Ocurrio un error al obtener las disponibilidades del doctor",
-          });
+        return reply.status(500).send({
+          message:
+            "Ocurrio un error al obtener las disponibilidades del doctor",
+        });
       }
     },
   );
+
+  app.get("/:doctorProfileId/appointments", { schema: { params: null } }, async(request, reply) => { 
+    
+  });
 }

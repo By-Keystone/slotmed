@@ -2,7 +2,7 @@ export type CreateAppointmentInput = {
   doctorProfileId: string;
   specialty: string;
   scheduledAt: string; // ISO
-  durationMinutes: string;
+  durationMinutes: number;
   patientName: string;
   patientLastName: string;
   patientPhone: string;

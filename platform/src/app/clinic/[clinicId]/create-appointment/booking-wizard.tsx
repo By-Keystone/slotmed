@@ -100,7 +100,7 @@ export function BookingWizard({ doctors, clinicId }: Props) {
                   scheduledAt: new Date(
                     `${dateTime.date}T${dateTime.time}:00`,
                   ).toISOString(),
-                  durationMinutes: String(SLOT_DURATION_MINUTES),
+                  durationMinutes: SLOT_DURATION_MINUTES,
                   patientName: p.name,
                   patientLastName: p.lastName,
                   patientPhone: p.phone,

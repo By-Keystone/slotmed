@@ -1,4 +1,5 @@
 import { NotFound } from "@/application/errors/not-found.error";
+import { getClinicAppointmentsParamsSchema } from "@/application/queries/clinic/get-clinic-appointments.query";
 import { getClinicMetricsParamsSchema } from "@/application/queries/clinic/get-clinic-metrics.query";
 import { getClinicUsersSchema } from "@/application/queries/clinic/get-clinic-users.query";
 import {
@@ -19,6 +20,7 @@ import {
 } from "@/application/use-cases/clinic/create-clinic.usecase";
 import { GetClinicsUseCase } from "@/application/use-cases/clinic/get-clinics.usecase";
 import { IClinicRepository } from "@/domain/repositories/clinic.repository";
+import { GetClinicAppointmentsQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-appointments.query";
 import { GetClinicMetricsQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-metrics.query";
 import { GetClinicUsersQuery } from "@/infrastructure/postgres/queries/clinic/get-clinic-users.query";
 import { policy, requireMembership } from "@/plugins/policy";
@@ -230,6 +232,43 @@ export default async function clinicRoutes(
 
         return reply.internalServerError(
           "An error occurred when getting metrics",
+        );
+      }
+    },
+  );
+
+  // Agenda del día. Un DOCTOR ve sólo sus citas; el resto de miembros, las de
+  // toda la clínica.
+  app.get(
+    "/clinic/:resourceId/appointments/today",
+    {
+      schema: { params: getClinicAppointmentsParamsSchema },
+      ...policy({
+        confirmed: true,
+        onboarded: true,
+        account: true,
+        member: true,
+        roles: "*",
+      }),
+    },
+    async (request, reply) => {
+      const membership = requireMembership(request);
+
+      try {
+        const query = new GetClinicAppointmentsQuery();
+
+        const result = await query.execute({
+          resourceId: request.params.resourceId,
+          role: membership.role,
+          userId: request.user.userId,
+        });
+
+        return reply.status(200).send(result);
+      } catch (error) {
+        console.error("Error ocurred getting today's appointments:", error);
+
+        return reply.internalServerError(
+          "An error occurred when getting appointments",
         );
       }
     },

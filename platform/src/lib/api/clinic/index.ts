@@ -1,5 +1,10 @@
 import { doFetchJson } from "../fetch";
-import { ClinicMetrics, ClinicUser, ClinicWithUser } from "./types";
+import {
+  ClinicAppointment,
+  ClinicMetrics,
+  ClinicUser,
+  ClinicWithUser,
+} from "./types";
 
 export const tags = {
   organizationClinics: (organizationId: string) =>
@@ -22,5 +27,9 @@ export const clinicApi = {
     doFetchJson(`/clinic/${clinicId}/metrics`, {
       method: "GET",
       next: { revalidate: 60 },
+    }),
+  getTodayAppointments: (clinicId: string): Promise<ClinicAppointment[]> =>
+    doFetchJson(`/clinic/${clinicId}/appointments/today`, {
+      method: "GET",
     }),
 };
