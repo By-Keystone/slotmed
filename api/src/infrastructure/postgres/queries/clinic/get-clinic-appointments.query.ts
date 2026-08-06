@@ -3,16 +3,21 @@ import {
   GetClinicAppointmentsDto,
   IGetClinicAppointmentsQuery,
 } from "@/application/queries/clinic/get-clinic-appointments.query";
+import {
+  addDays,
+  startOfDay,
+  today,
+  toWallTime,
+} from "@/domain/services/clinic-time";
 import { getClient } from "../../transaction-context";
 
 export class GetClinicAppointmentsQuery implements IGetClinicAppointmentsQuery {
   async execute(dto: GetClinicAppointmentsDto): Promise<ClinicAppointment[]> {
-    // Mismo rango semiabierto que las métricas: [00:00 de hoy, 00:00 de mañana).
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const startOfNextDay = new Date(startOfDay);
-    startOfNextDay.setDate(startOfNextDay.getDate() + 1);
+    // "Hoy" es el día del reloj de la clínica, no el del servidor: en
+    // producción corre en UTC y adelantaría el corte varias horas.
+    const date = today();
+    const startOfToday = startOfDay(date);
+    const startOfTomorrow = startOfDay(addDays(date, 1));
 
     const appointments = await getClient().appointment.findMany({
       where: {
@@ -20,7 +25,7 @@ export class GetClinicAppointmentsQuery implements IGetClinicAppointmentsQuery {
         ...(dto.role === "DOCTOR" && {
           doctorProfile: { userId: dto.userId },
         }),
-        scheduledAt: { gte: startOfDay, lt: startOfNextDay },
+        scheduledAt: { gte: startOfToday, lt: startOfTomorrow },
       },
       orderBy: { scheduledAt: "asc" },
       select: {
@@ -40,6 +45,7 @@ export class GetClinicAppointmentsQuery implements IGetClinicAppointmentsQuery {
 
     return appointments.map(({ doctorProfile, ...appointment }) => ({
       ...appointment,
+      time: toWallTime(appointment.scheduledAt).time,
       doctor: doctorProfile.user,
     }));
   }

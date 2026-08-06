@@ -13,11 +13,6 @@ const statusStyles: Record<
   NO_SHOW: { label: "No asistió", className: "bg-red-50 text-red-700" },
 };
 
-const timeFormatter = new Intl.DateTimeFormat("es", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
 interface Props {
   resourceId: string;
 }
@@ -53,7 +48,7 @@ export async function TodayAppointments({ resourceId }: Props) {
                   dateTime={appointment.scheduledAt}
                   className="w-14 shrink-0 font-semibold tabular-nums text-gray-900"
                 >
-                  {timeFormatter.format(new Date(appointment.scheduledAt))}
+                  {appointment.time}
                 </time>
 
                 <div className="min-w-0 flex-1">

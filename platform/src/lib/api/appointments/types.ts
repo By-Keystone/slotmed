@@ -1,7 +1,7 @@
 export type CreateAppointmentInput = {
   doctorProfileId: string;
   specialty: string;
-  scheduledAt: string; // ISO
+  scheduledAt: string; // "YYYY-MM-DDTHH:mm" en hora de la clínica, sin zona
   durationMinutes: number;
   patientName: string;
   patientLastName: string;

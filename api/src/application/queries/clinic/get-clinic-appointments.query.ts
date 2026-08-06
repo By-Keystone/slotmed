@@ -16,6 +16,11 @@ export type GetClinicAppointmentsDto = z.infer<
 export interface ClinicAppointment {
   id: string;
   scheduledAt: Date;
+  /**
+   * Hora de reloj de la clínica (`"09:00"`), ya resuelta con su huso. Evita que
+   * el cliente tenga que conocerlo para pintar la agenda.
+   */
+  time: string;
   durationMinutes: number;
   status: AppointmentStatus;
   specialty: string;

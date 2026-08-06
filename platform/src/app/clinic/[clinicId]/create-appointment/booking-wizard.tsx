@@ -10,7 +10,6 @@ import { DoctorStep } from "./steps/doctor-step";
 import { DateTimeStep } from "./steps/datetime-step";
 import { PatientStep, BookingPatient } from "./steps/patient-step";
 import { SuccessStep } from "./steps/success-step";
-import { SLOT_DURATION_MINUTES } from "./lib/generate-slots";
 
 interface Specialty {
   id: string;
@@ -29,6 +28,7 @@ export function BookingWizard({ doctors, clinicId }: Props) {
   const [dateTime, setDateTime] = useState<{
     date: string;
     time: string;
+    durationMinutes: number;
   } | null>(null);
   const [patient, setPatient] = useState<BookingPatient | null>(null);
 
@@ -97,10 +97,11 @@ export function BookingWizard({ doctors, clinicId }: Props) {
                 const result = await createAppointmentAction({
                   doctorProfileId: doctor.doctorProfileId,
                   specialty: specialty.name,
-                  scheduledAt: new Date(
-                    `${dateTime.date}T${dateTime.time}:00`,
-                  ).toISOString(),
-                  durationMinutes: SLOT_DURATION_MINUTES,
+                  // Se envía la hora del hueco tal cual se eligió, sin zona: es
+                  // el api quien sabe en qué huso opera la clínica y la
+                  // convierte al instante que le toca.
+                  scheduledAt: `${dateTime.date}T${dateTime.time}`,
+                  durationMinutes: dateTime.durationMinutes,
                   patientName: p.name,
                   patientLastName: p.lastName,
                   patientPhone: p.phone,
