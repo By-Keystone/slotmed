@@ -40,7 +40,9 @@ export type AppointmentStatus =
  */
 export type ClinicAppointment = {
   id: string;
-  scheduledAt: string; // ISO
+  scheduledAt: string; // ISO en UTC
+  /** Hora de reloj de la clínica ("09:00"), ya resuelta por el api. */
+  time: string;
   durationMinutes: number;
   status: AppointmentStatus;
   specialty: string;

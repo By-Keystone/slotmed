@@ -3,19 +3,18 @@ import {
   GetClinicMetricsDto,
   IGetClinicMetricsQuery,
 } from "@/application/queries/clinic/get-clinic-metrics.query";
+import { addDays, startOfDay, today } from "@/domain/services/clinic-time";
 import { getClient } from "../../transaction-context";
 
 export class GetClinicMetricsQuery implements IGetClinicMetricsQuery {
   async execute(dto: GetClinicMetricsDto): Promise<ClinicMetrics> {
     const client = getClient();
 
-    // Citas de hoy: rango semiabierto [00:00 de hoy, 00:00 de mañana). Comparar
-    // `scheduledAt` con un instante concreto no casaría con ninguna fila.
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const startOfNextDay = new Date(startOfDay);
-    startOfNextDay.setDate(startOfNextDay.getDate() + 1);
+    // Citas de hoy: rango semiabierto [00:00, 00:00 de mañana) según el reloj
+    // de la clínica, no el del servidor.
+    const date = today();
+    const startOfToday = startOfDay(date);
+    const startOfTomorrow = startOfDay(addDays(date, 1));
 
     const [appointments, doctors, memberships] = await Promise.all([
       client.appointment.count({
@@ -24,7 +23,7 @@ export class GetClinicMetricsQuery implements IGetClinicMetricsQuery {
             clinicId: dto.resourceId,
             ...(dto.role === "DOCTOR" && { userId: dto.userId }),
           },
-          scheduledAt: { gte: startOfDay, lt: startOfNextDay },
+          scheduledAt: { gte: startOfToday, lt: startOfTomorrow },
         },
       }),
       client.doctorProfile.count({ where: { clinicId: dto.resourceId } }),
