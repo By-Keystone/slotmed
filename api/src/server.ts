@@ -124,7 +124,7 @@ async function start() {
     prefix: "/user",
     userRepository,
     transactionManager,
-    emailService
+    emailService,
   });
 
   await fastify.register(accountRoutes, {
@@ -135,7 +135,7 @@ async function start() {
   });
 
   await fastify.register(userInvitationRoutes, {
-    prefix: '/invitations'
+    prefix: "/invitations",
   });
 
   await fastify.register(doctorProfileRoutes, {
@@ -144,6 +144,7 @@ async function start() {
 
   await fastify.register(appointmentRoutes, {
     prefix: "/appointment",
+    emailService,
   });
 
   fastify.get("/health", { ...policy({ public: true }) }, async () => ({

@@ -6,10 +6,22 @@ import mjml2html from "mjml";
 export type EmailTemplate =
   | "confirm-email"
   | "invite-user"
+  | "confirm-appointment";
 
 interface TemplateVariables {
   "confirm-email": { name: string; confirmUrl: string };
   "invite-user": { name: string; resourceName: string; inviteUrl: string };
+  /** Acuse de reserva: la cita ya está creada, no hay nada que confirmar. */
+  "confirm-appointment": {
+    patientName: string;
+    patientLastName: string;
+    scheduledAt: string;
+    durationMinutes: number;
+    specialty: string;
+    doctorName: string;
+    clinicName: string;
+    clinicAddress: string;
+  };
 }
 
 const compiledCache = new Map<EmailTemplate, HandlebarsTemplateDelegate>();

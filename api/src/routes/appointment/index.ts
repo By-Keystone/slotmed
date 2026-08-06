@@ -7,20 +7,29 @@ import { ZodTypeProvider } from "@fastify/type-provider-zod";
 import { FastifyInstance } from "fastify";
 import { policy } from "@/plugins/policy";
 import { ApplicationError } from "@/application/errors/application.errors";
+import { SESEmailService } from "@/infrastructure/services/email-service/ses.service";
+import { IEmailService } from "@/application/ports/email-service.port";
 
-export default async function appointmentRoutes(fastify: FastifyInstance) {
+interface RouteProps {
+  emailService: IEmailService;
+}
+
+export default async function appointmentRoutes(
+  fastify: FastifyInstance,
+  opts: RouteProps,
+) {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
+
+  const { emailService } = opts;
 
   app.post(
     "",
     { schema: { body: createAppointmentSchema }, ...policy({ public: true }) },
     async (request, reply) => {
       try {
-        const command = new CreateApointmentUseCase();
+        const command = new CreateApointmentUseCase({ emailService });
 
         await command.execute(request.body);
-
-        // TODO: Send an email afterwards
         return reply.status(200).send({ message: "Cita creada con éxito" });
       } catch (error) {
         // El horario ya fue tomado por otro paciente (choca con el
