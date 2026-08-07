@@ -1,0 +1,31 @@
+name: Deploy API on Release
+
+on:
+  release:
+    types: [published]
+
+# Dos releases seguidos no deben pisarse. No se cancela el que esté en curso:
+# abortar un despliegue a medias deja el servicio en peor estado que encolarlo.
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  deploy-api:
+    # Solo los releases etiquetados `api-*` tocan este servicio.
+    if: startsWith(github.event.release.tag_name, 'api-')
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Se lanza desde la raíz del repo: el servicio de Railway ya tiene
+      # configurada `api/` como root directory, así que entrar en la carpeta
+      # haría que buscase `api/api`.
+      - name: Deploy API Service
+        run: railway up --service=${{ secrets.RAILWAY_API_SERVICE_ID }} --detach
