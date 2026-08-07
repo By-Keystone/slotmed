@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   deploy-platform:
+    environment: production
     # Solo los releases etiquetados `platform-*` tocan este servicio.
     if: startsWith(github.event.release.tag_name, 'platform-')
     runs-on: ubuntu-latest
