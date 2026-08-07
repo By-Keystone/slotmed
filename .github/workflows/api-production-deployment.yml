@@ -13,6 +13,7 @@ concurrency:
 jobs:
   deploy-api:
     # Solo los releases etiquetados `api-*` tocan este servicio.
+    environment: wizydoc/production
     if: startsWith(github.event.release.tag_name, 'api-')
     runs-on: ubuntu-latest
     container:
